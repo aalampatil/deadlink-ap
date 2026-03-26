@@ -1,6 +1,4 @@
-import { nanoid } from "nanoid";
 import crypto from "crypto";
-import { isDevelopment } from "../index.js";
 
 function hashKey(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");

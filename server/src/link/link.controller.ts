@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { nanoid } from "nanoid";
-import { isDevelopment } from "../index.js";
+import { isProduction } from "../index.js";
 import linkModel from "./link.model.js";
 import ApiError from "../utils/api-error.js";
 import { hashKey, generateMappingKey, validateUrl } from "../utils/utils.js";
@@ -23,9 +23,9 @@ const createLink = async (req: Request, res: Response) => {
     throw ApiError.internalError("failed to create url");
   }
 
-  const publicBaseUrl = isDevelopment
-    ? process.env.FRONTEND
-    : process.env.CLIENT;
+  const publicBaseUrl = isProduction
+    ? process.env.CLIENT
+    : process.env.FRONTEND;
   const publicUrl = `${publicBaseUrl}/l/${linkDoc.slug}`;
   const manageUrl = `${publicBaseUrl}/manage?slug=${encodeURIComponent(
     linkDoc.slug,
@@ -84,11 +84,11 @@ const manageLink = async (req: Request, res: Response) => {
 const mapLink = async (req: Request, res: Response) => {
   console.log(req.body);
   const { slug } = req.params;
-  if (isDevelopment) console.log(slug);
+  if (!isProduction) console.log(slug);
 
   if (!slug) throw ApiError.badRequest();
   const { key, targetUrl } = req.body || {};
-  if (isDevelopment) {
+  if (!isProduction) {
     console.table([key, targetUrl]);
   }
 
