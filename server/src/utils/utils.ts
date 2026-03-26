@@ -10,13 +10,6 @@ function generateMappingKey(): string {
   return crypto.randomBytes(32).toString("base64url");
 }
 
-function baseUrl(): string {
-  const url = isDevelopment
-    ? `${process.env.FRONTEND}`
-    : `${process.env.CLIENT}`;
-  return url;
-}
-
 function validateUrl(raw: string): string {
   if (typeof raw !== "string") throw new Error("targetUrl must be a string");
   const value = raw.trim();
@@ -36,4 +29,4 @@ function validateUrl(raw: string): string {
   return url.toString();
 }
 
-export { hashKey, generateMappingKey, baseUrl, validateUrl };
+export { hashKey, generateMappingKey, validateUrl };
