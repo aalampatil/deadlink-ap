@@ -25,8 +25,10 @@ function createApp() {
       origin: [
         "http://localhost:5173",
         "http://localhost:5174",
-        process.env.CLIENT as string,
+        "https://deadlink-ap.aalampatil.online",
       ],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true,
     }),
   );
   app.use(express.json());
