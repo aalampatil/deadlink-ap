@@ -10,7 +10,7 @@ function createApp() {
   // global rate limiter
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // max requests per IP
+    max: 25, // max requests per IP
     message: {
       error: "Too many requests, please try again later.",
     },
