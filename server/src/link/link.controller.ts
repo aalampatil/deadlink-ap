@@ -24,8 +24,8 @@ const createLink = async (req: Request, res: Response) => {
   }
 
   const publicBaseUrl = isDevelopment
-    ? `${process.env.FRONTEND}`
-    : `${process.env.CLIENT}`;
+    ? process.env.FRONTEND
+    : process.env.CLIENT;
   const publicUrl = `${publicBaseUrl}/l/${linkDoc.slug}`;
   const manageUrl = `${publicBaseUrl}/manage?slug=${encodeURIComponent(
     linkDoc.slug,

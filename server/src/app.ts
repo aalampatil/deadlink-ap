@@ -19,13 +19,13 @@ function createApp() {
   });
 
   app.use(limiter);
-
+  console.log(`${process.env.CLIENT}`);
   app.use(
     cors({
       origin: [
         "http://localhost:5173",
         "http://localhost:5174",
-        "https://deadlink-ap.aalampatil.online",
+        `${process.env.CLIENT}`,
       ],
       methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
