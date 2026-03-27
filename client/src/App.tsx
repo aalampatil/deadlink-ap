@@ -2,10 +2,12 @@ import { Outlet } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
+import { ToastContainer } from "react-toastify"
 
 function App() {
   return (
     <>
+      <ToastContainer />
       <div
         className="bg-background min-h-screen"
         style={{

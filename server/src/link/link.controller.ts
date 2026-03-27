@@ -31,8 +31,10 @@ const createLink = async (req: Request, res: Response) => {
     linkDoc.slug,
   )}&key=${encodeURIComponent(mappingKey)}`;
 
-  console.log({ publicUrl });
-  console.log({ manageUrl });
+  if (!isProduction) {
+    console.log({ publicUrl });
+    console.log({ manageUrl });
+  }
 
   res.status(201).json({
     slug: linkDoc.slug,

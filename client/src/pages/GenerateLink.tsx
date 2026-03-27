@@ -1,32 +1,37 @@
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React, { useState, useRef, } from "react";
 import { axiosApi } from "@/config/axiosApi";
 import { Input } from "@/components/ui/input";
+import { toast } from "react-toastify";
 
 const GenerateLink = () => {
   const [title, setTitle] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const requestLock = useRef(false);
 
   const createLink = async () => {
+    if (requestLock.current) return;
+    requestLock.current = true;
     try {
       setLoading(true);
 
       const res = await axiosApi.post("/create", { title })
-      console.log(res)
+      // console.log(res)
 
       setData(res.data);
     } catch (err) {
       console.error(err);
-      alert("Failed to create link");
+      // toast.error(err)
     } finally {
       setLoading(false);
+      requestLock.current = false;
     }
-  };
+  }
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Copied!");
+    toast.success("copied")
   };
 
   return (
@@ -44,10 +49,13 @@ const GenerateLink = () => {
         </p>
         <Input type="text" placeholder="Project / Submission name"
           value={title}
+
           onChange={(e) => setTitle(e.target.value)}
           className="border-2 border-border shadow-shadow p-3 outline-none bg-white" />
 
-        <Button size="lg" onClick={createLink} className="text-2xl w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading">
+        <Button
+          disabled={loading}
+          size="lg" onClick={createLink} className="text-2xl w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading">
           {loading ? "Generating..." : "Generate Link"}
         </Button>
       </div>

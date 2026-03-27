@@ -5,7 +5,9 @@ import { connectDB } from "./db/db.js";
 export const isProduction = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || "5000";
 
-console.log("check 00");
+if (!isProduction) {
+  console.log("check 00");
+}
 
 async function main() {
   await connectDB();
