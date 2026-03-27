@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Show, UserButton, SignInButton } from '@clerk/react'
 
 const Header = () => {
 
@@ -14,7 +15,15 @@ const Header = () => {
       <p className=" text-sm sm:text-lg md:text-xl text-center px-3 py-2 border-2 border-border shadow-shadow bg-main">
         not all the time, but might be that one moment
       </p>
+      <Show when="signed-in">
+        <UserButton />
+      </Show>
+      <Show when="signed-out">
+        <div className="border-2 border-border shadow-shadow bg-main">
+          <SignInButton />
+        </div>
 
+      </Show>
     </header>
   );
 };

@@ -13,14 +13,15 @@ type LinkData = {
 const PublicUrl = () => {
     const { slug } = useParams();
     const [data, setData] = useState<LinkData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     const fetchLink = async () => {
         try {
-            const res = await axiosApi.get(`/public/${slug}`);
-            const link = res.data;
+            const res = await axiosApi.get(`/link/public/${slug}`);
+            const link = res.data as LinkData;
 
-            if (link.mappedUrl) {
+            if (link?.mappedUrl) {
+                // Redirect if mapped
                 window.location.href = link.mappedUrl;
                 return;
             }
@@ -28,8 +29,9 @@ const PublicUrl = () => {
             setData(link);
         } catch (err) {
             console.error(err);
+            setData(null);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
@@ -37,7 +39,7 @@ const PublicUrl = () => {
         if (slug) fetchLink();
     }, [slug]);
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="border-4 border-border shadow-shadow bg-secondary-background px-6 py-4 font-heading">
@@ -59,9 +61,7 @@ const PublicUrl = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4">
-
             <div className="max-w-xl w-full border-4 border-border shadow-shadow bg-secondary-background p-8 text-center space-y-4">
-
                 <h1 className="text-2xl sm:text-3xl font-heading">
                     {data.displayTitle || "Submission Pending"}
                 </h1>
@@ -74,17 +74,14 @@ const PublicUrl = () => {
                     <p className="font-heading">Status: {data.status}</p>
                 </div>
 
-                <p className="text-sm">
-                    The owner will update this link soon.
-                </p>
+                <p className="text-sm">The owner will update this link soon.</p>
 
                 <Button
-                    onClick={() => window.location.reload()}
-                    className="mt-4"
+                    onClick={() => fetchLink()}
+                    className="mt-4 bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading"
                 >
                     Refresh
                 </Button>
-
             </div>
         </div>
     );

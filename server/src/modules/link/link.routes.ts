@@ -5,12 +5,13 @@ import {
   mapLink,
   publicLink,
 } from "./link.controller.js";
+import { requireAuth } from "@clerk/express";
 
 const linkRouter = Router();
 
-linkRouter.post("/create", createLink);
+linkRouter.post("/create", requireAuth(), createLink);
 linkRouter.get("/public/:slug", publicLink);
-linkRouter.get("/manage/:slug", manageLink);
-linkRouter.post("/:slug/map", mapLink);
+linkRouter.get("/manage/:slug", requireAuth(), manageLink);
+linkRouter.post("/:slug/map", requireAuth(), mapLink);
 
 export default linkRouter;
