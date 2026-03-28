@@ -2,14 +2,8 @@ import express from "express";
 import linkRouter from "./modules/link/link.routes.js";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
-import {
-  clerkMiddleware,
-  clerkClient,
-  requireAuth,
-  getAuth,
-} from "@clerk/express";
-import { userRouter } from "./modules/user/user.routes.js";
-import { isProduction } from "./index.js";
+import { clerkMiddleware } from "@clerk/express";
+import type { Request, Response } from "express";
 
 // http://localhost:5000/api/user/profile
 
@@ -18,7 +12,7 @@ function createApp() {
 
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50,
+    max: 10,
     message: {
       error: "Too many requests, please try again later.",
     },
@@ -43,8 +37,11 @@ function createApp() {
   app.use(express.json());
   app.use(express.urlencoded());
 
+  app.get("/", (req: Request, res: Response) => {
+    res.send("OK 200");
+  });
   app.use("/api/link", linkRouter);
-  app.use("/api/user", userRouter);
+  // app.use("/api/user", userRouter);
 
   return app;
 }
