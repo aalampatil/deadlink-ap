@@ -12,7 +12,7 @@ function createApp() {
 
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 5,
     message: {
       error: "Too many requests, please try again later.",
     },
@@ -38,7 +38,7 @@ function createApp() {
   app.use(express.urlencoded());
 
   app.get("/", (req: Request, res: Response) => {
-    res.send("OK 200");
+    res.send("OK 200, check");
   });
   app.use("/api/link", linkRouter);
   // app.use("/api/user", userRouter);
