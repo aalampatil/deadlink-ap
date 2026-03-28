@@ -2,8 +2,8 @@ import express from "express";
 import linkRouter from "./modules/link/link.routes.js";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
-// import { clerkMiddleware } from "@clerk/express";
-const { clerkMiddleware } = await import("@clerk/express");
+import { clerkMiddleware } from "@clerk/express";
+
 import type { Request, Response } from "express";
 
 // http://localhost:5000/api/user/profile

@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 import linkModel from "./link.model.js";
 import ApiError from "../../utils/api-error.js";
 import { validateUrl } from "../../utils/utils.js";
-// import { getAuth } from "@clerk/express";
-const { getAuth } = await import("@clerk/express");
+import { getAuth } from "@clerk/express";
+
 import { isProduction } from "../../index.js";
 
 const createLink = async (req: Request, res: Response) => {

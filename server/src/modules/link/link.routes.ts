@@ -5,8 +5,7 @@ import {
   mapLink,
   publicLink,
 } from "./link.controller.js";
-// import { requireAuth } from "@clerk/express";
-const { requireAuth } = await import("@clerk/express");
+import { requireAuth } from "@clerk/express";
 const linkRouter = Router();
 
 linkRouter.post("/create", requireAuth(), createLink);
