@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { nanoid } from "nanoid";
 import linkModel from "./link.model.js";
 import ApiError from "../../utils/api-error.js";
-import { hashKey, generateMappingKey, validateUrl } from "../../utils/utils.js";
+import { validateUrl } from "../../utils/utils.js";
 import { getAuth } from "@clerk/express";
 import { isProduction } from "../../index.js";
 
