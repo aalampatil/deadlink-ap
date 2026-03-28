@@ -3,8 +3,7 @@ import linkRouter from "./modules/link/link.routes.js";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
-
-import type { Request, Response } from "express";
+import type { Response } from "express";
 
 // http://localhost:5000/api/user/profile
 
@@ -24,28 +23,21 @@ function createApp() {
   // console.log(limiter);
   app.use(limiter);
   app.use(clerkMiddleware());
-  // CORS
-  const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://deadlink-ap.aalampatil.online", // production frontend
-    process.env.CLIENT || "", // fallback if set
-  ].filter(Boolean); // remove empty strings
-
   app.use(
     cors({
-      origin: allowedOrigins,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      origin: [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        process.env.CLIENT as string,
+      ],
+      methods: ["GET", "POST", "PUT", "DELETE"],
       credentials: true,
     }),
   );
-
-  // Handle preflight requests
-  app.options("*", cors({ origin: allowedOrigins, credentials: true }));
-  app.use(express.json({ limit: "1mb" }));
+  app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded());
 
-  app.get("/", (req: Request, res: Response) => {
+  app.get("/", (_, res: Response) => {
     res.send("OK 200, check");
   });
   app.use("/api/link", linkRouter);
