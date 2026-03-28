@@ -34,7 +34,7 @@ function createApp() {
       credentials: true,
     }),
   );
-  app.use(express.json());
+  app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded());
 
   app.get("/", (req: Request, res: Response) => {
