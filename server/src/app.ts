@@ -24,17 +24,24 @@ function createApp() {
   // console.log(limiter);
   app.use(limiter);
   app.use(clerkMiddleware());
+  // CORS
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://deadlink-ap.aalampatil.online", // production frontend
+    process.env.CLIENT || "", // fallback if set
+  ].filter(Boolean); // remove empty strings
+
   app.use(
     cors({
-      origin: [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        process.env.CLIENT as string,
-      ],
-      methods: ["GET", "POST", "PUT", "DELETE"],
+      origin: allowedOrigins,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
     }),
   );
+
+  // Handle preflight requests
+  app.options("*", cors({ origin: allowedOrigins, credentials: true }));
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded());
 
