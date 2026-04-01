@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header/Header";
@@ -10,16 +10,23 @@ import axiosApi from "./config/axiosApi";
 
 function App() {
   const { isLoaded, getToken } = useAuth();
+  const getTokenRef = useRef<typeof getToken | null>(null);
+
+  // always keep ref in sync, no effect re-runs
+  getTokenRef.current! = getToken;
 
   useEffect(() => {
-    if (!isLoaded || !getToken) return;
+    if (!isLoaded) return;
 
-    const interceptorId = attachTokenInterceptor(getToken)
+    const interceptorId = attachTokenInterceptor(
+      () => getTokenRef.current?.() ?? Promise.resolve(null)
+    );
+
     return () => {
       axiosApi.interceptors.request.eject(interceptorId);
     };
 
-  }, [getToken, isLoaded])
+  }, [isLoaded]); // only fires once when clerk finishes loading
 
   return (
     <>

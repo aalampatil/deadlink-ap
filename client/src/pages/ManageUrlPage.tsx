@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { axiosApi } from "@/config/axiosApi";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/react";
 import { toast } from "react-toastify";
@@ -16,39 +16,32 @@ interface LinkData {
 const ManageUrlPage = () => {
     const navigate = useNavigate();
     const { slug } = useParams();
-    console.log(slug)
     const { isLoaded, isSignedIn } = useAuth();
+
     const [data, setData] = useState<LinkData | null>(null);
     const [targetUrl, setTargetUrl] = useState("");
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(false);
 
-    // Fetch link details
-    const fetchLink = async () => {
+    const fetchLink = useCallback(async () => {
         if (!slug) return;
-
-        if (!isSignedIn) {
-            toast.error("You must be signed in to manage links");
-            navigate("/sign-in");
-            return;
-        }
-
+        setFetching(true);
         try {
             const res = await axiosApi.get(`/link/public/${slug}`);
             setData(res.data);
         } catch (err) {
-            console.error(err);
             toast.error(err?.response?.data?.message || "Failed to fetch link");
+        } finally {
+            setFetching(false);
         }
-    };
+    }, [slug]);
 
-    // Map final URL
     const mapUrl = async () => {
         if (!slug) return;
-        if (!targetUrl) {
+        if (!targetUrl.trim()) {
             toast.error("Please enter a target URL");
             return;
         }
-
         try {
             setLoading(true);
             await axiosApi.post(`/link/${slug}/map`, { targetUrl });
@@ -56,30 +49,36 @@ const ManageUrlPage = () => {
             setTargetUrl("");
             toast.success("URL mapped successfully!");
         } catch (err) {
-            console.error(err);
             toast.error(err?.response?.data?.message || "Failed to map URL");
         } finally {
             setLoading(false);
         }
     };
 
-    const copyText = (text: string) => {
-        navigator.clipboard.writeText(text);
-        toast.success("Copied to clipboard!");
+    const copyText = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success("Copied!");
+        } catch {
+            const el = document.createElement("textarea");
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+            toast.success("Copied!");
+        }
     };
 
     useEffect(() => {
-        if (!isLoaded) return; // Wait for Clerk to load
-
+        if (!isLoaded) return;
         if (!isSignedIn) {
             toast.error("You must be signed in to manage links");
             navigate("/sign-in");
             return;
         }
-
-
         fetchLink();
-    }, [slug, isLoaded, isSignedIn]);
+    }, [slug, isLoaded, isSignedIn, fetchLink, navigate]);
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -91,7 +90,11 @@ const ManageUrlPage = () => {
                 </div>
 
                 {/* Link Info */}
-                {data && (
+                {fetching ? (
+                    <div className="border-4 border-border shadow-shadow bg-secondary-background p-4 text-center">
+                        <p>Loading...</p>
+                    </div>
+                ) : data ? (
                     <div className="border-4 border-border shadow-shadow bg-secondary-background p-4 flex flex-col gap-4">
                         <div>
                             <p className="font-heading">Slug</p>
@@ -105,7 +108,6 @@ const ManageUrlPage = () => {
                             <p className="font-heading">Status</p>
                             <p className="font-thin text-xl">{data.status}</p>
                         </div>
-
                         {data.mappedUrl && (
                             <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                                 <p className="font-heading">Mapped URL</p>
@@ -119,7 +121,7 @@ const ManageUrlPage = () => {
                             </div>
                         )}
                     </div>
-                )}
+                ) : null}
 
                 {/* Map URL Form */}
                 <div className="border-4 border-border shadow-shadow bg-main p-4 flex flex-col gap-4">
@@ -134,7 +136,7 @@ const ManageUrlPage = () => {
 
                     <Button
                         onClick={mapUrl}
-                        disabled={loading}
+                        disabled={loading || fetching}
                         size="lg"
                         className="w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none"
                     >
@@ -144,7 +146,7 @@ const ManageUrlPage = () => {
                     {data && (
                         <Button
                             onClick={() => navigate(`/l/${data.slug}`)}
-                            disabled={loading}
+                            disabled={loading || fetching}
                             size="lg"
                             className="w-fit bg-main border-2 border-border shadow-shadow rounded-none"
                         >
@@ -152,6 +154,7 @@ const ManageUrlPage = () => {
                         </Button>
                     )}
                 </div>
+
             </div>
         </div>
     );
