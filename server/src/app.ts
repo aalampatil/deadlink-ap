@@ -9,20 +9,6 @@ import type { Response } from "express";
 
 function createApp() {
   const app = express();
-
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    message: {
-      error: "Too many requests, please try again later.",
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-
-  // console.log(limiter);
-  app.use(limiter);
-  app.use(clerkMiddleware());
   app.use(
     cors({
       origin: [
@@ -34,8 +20,23 @@ function createApp() {
       credentials: true,
     }),
   );
+
   app.use(express.json({ limit: "5mb" }));
-  app.use(express.urlencoded());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(clerkMiddleware());
+
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: {
+      error: "Too many requests, please try again later.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  // console.log(limiter);
+  app.use(limiter);
 
   app.get("/", (_, res: Response) => {
     res.send("OK 200, check");

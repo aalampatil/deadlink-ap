@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { nanoid } from "nanoid";
 import linkModel from "./link.model.js";
 import ApiError from "../../utils/api-error.js";
@@ -7,36 +7,42 @@ import { getAuth } from "@clerk/express";
 
 import { isProduction } from "../../index.js";
 
-const createLink = async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  if (!userId) throw ApiError.unauthorised();
+const createLink = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) throw ApiError.unauthorised();
 
-  const { displayTitle } = req.body || {};
-  const slug = nanoid(12);
+    const { displayTitle } = req.body || {};
+    const slug = nanoid(12);
 
-  const linkDoc = await linkModel.create({
-    slug,
-    displayTitle:
-      typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "",
-    ownerId: userId,
-  });
+    const linkDoc = await linkModel.create({
+      slug,
+      displayTitle:
+        typeof displayTitle === "string"
+          ? displayTitle.trim().slice(0, 120)
+          : "",
+      ownerId: userId,
+    });
 
-  if (!linkDoc) throw ApiError.internalError("Failed to create URL");
+    if (!linkDoc) throw ApiError.internalError("Failed to create URL");
 
-  const publicBaseUrl = isProduction
-    ? process.env.CLIENT
-    : process.env.FRONTEND;
-  const publicUrl = `${publicBaseUrl}/l/${linkDoc.slug}`;
-  const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(
-    linkDoc.slug,
-  )}`;
-  res.status(201).json({
-    slug: linkDoc.slug,
-    displayTitle: linkDoc.displayTitle,
+    const publicBaseUrl = isProduction
+      ? process.env.CLIENT
+      : process.env.FRONTEND;
+    const publicUrl = `${publicBaseUrl}/l/${linkDoc.slug}`;
+    const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(
+      linkDoc.slug,
+    )}`;
+    res.status(201).json({
+      slug: linkDoc.slug,
+      displayTitle: linkDoc.displayTitle,
 
-    publicUrl,
-    manageUrl,
-  });
+      publicUrl,
+      manageUrl,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 const publicLink = async (req: Request, res: Response) => {
