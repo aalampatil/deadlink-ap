@@ -11,6 +11,7 @@ import { ClerkProvider } from "@clerk/react";
 import ProtectedRoute from "./config/Protected";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
+import GetAllLinks from "./pages/GetAllLinks";
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: "manage/:slug",
         element: <ManageUrlPage />,
+      },
+      {
+        path: "get-all",
+        element: <GetAllLinks />,
       },
     ],
   },

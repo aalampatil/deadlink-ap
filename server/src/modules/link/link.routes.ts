@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createLink,
+  getAllLinks,
   manageLink,
   mapLink,
   publicLink,
@@ -12,5 +13,6 @@ linkRouter.post("/create", requireAuth(), createLink);
 linkRouter.get("/public/:slug", publicLink);
 linkRouter.get("/manage/:slug", requireAuth(), manageLink);
 linkRouter.post("/:slug/map", requireAuth(), mapLink);
+linkRouter.get("/get-all", requireAuth(), getAllLinks);
 
 export default linkRouter;

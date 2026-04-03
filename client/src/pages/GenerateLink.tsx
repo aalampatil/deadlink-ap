@@ -34,6 +34,7 @@ const GenerateLink = () => {
       setLoading(true);
 
       const res = await axiosApi.post("/link/create", { displayTitle });
+      console.log(res)
       setData(res.data);
 
       toast.success("Link generated successfully!");

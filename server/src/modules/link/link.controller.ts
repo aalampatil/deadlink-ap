@@ -15,7 +15,7 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
     const { displayTitle } = req.body || {};
     const slug = nanoid(12);
 
-    const linkDoc = await linkModel.create({
+    const link = await linkModel.create({
       slug,
       displayTitle:
         typeof displayTitle === "string"
@@ -24,19 +24,23 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
       ownerId: userId,
     });
 
-    if (!linkDoc) throw ApiError.internalError("Failed to create URL");
+    if (!link) throw ApiError.internalError("Failed to create URL");
 
     const publicBaseUrl = isProduction
       ? process.env.CLIENT
       : process.env.FRONTEND;
-    const publicUrl = `${publicBaseUrl}/l/${linkDoc.slug}`;
+    const publicUrl = `${publicBaseUrl}/l/${link.slug}`;
     const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(
-      linkDoc.slug,
+      link.slug,
     )}`;
-    res.status(201).json({
-      slug: linkDoc.slug,
-      displayTitle: linkDoc.displayTitle,
 
+    link.publicUrl = publicUrl;
+    link.manageUrl = manageUrl;
+
+    await link.save({ validateBeforeSave: false });
+    res.status(201).json({
+      slug: link.slug,
+      displayTitle: link.displayTitle,
       publicUrl,
       manageUrl,
     });
@@ -86,12 +90,12 @@ const mapLink = async (req: Request, res: Response) => {
   const { slug } = req.params;
   const { targetUrl } = req.body || {};
   if (!slug || typeof targetUrl !== "string") throw ApiError.badRequest();
-  const link = await linkModel.findOne({ slug });
+  const link = await linkModel.findOne({ slug, ownerId: userId });
   if (!link) throw ApiError.notfound();
-  if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
+  // if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
   link.mappedUrl = validateUrl(targetUrl);
   link.mappedOn = new Date();
-  await link.save();
+  await link.save({ validateBeforeSave: false });
 
   res.json({
     slug: link.slug,
@@ -101,4 +105,24 @@ const mapLink = async (req: Request, res: Response) => {
   });
 };
 
-export { createLink, publicLink, manageLink, mapLink };
+const getAllLinks = async (req: Request, res: Response) => {
+  try {
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      throw ApiError.unauthorised();
+    }
+
+    const links = await linkModel.find({ ownerId: userId });
+
+    return res.status(200).json({
+      success: true,
+      data: links,
+    });
+  } catch (error) {
+    console.error("Error fetching links:", error);
+    throw ApiError.notfound("failed to fetch links");
+  }
+};
+
+export { createLink, publicLink, manageLink, mapLink, getAllLinks };

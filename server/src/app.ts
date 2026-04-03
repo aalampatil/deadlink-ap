@@ -9,7 +9,7 @@ import type { Response } from "express";
 
 function createApp() {
   const app = express();
-  app.set("trust proxy", 1);
+  // app.set("trust proxy", 1);
 
   app.use(
     cors({
@@ -22,6 +22,7 @@ function createApp() {
       credentials: true,
     }),
   );
+  // app.options("*", cors());
 
   app.use(express.json({ limit: "5mb" }));
   app.use(express.urlencoded({ extended: true }));
@@ -33,6 +34,7 @@ function createApp() {
     message: {
       error: "Too many requests, please try again later.",
     },
+    skip: (req) => req.method === "OPTIONS", // ⭐ IMPORTANT
     standardHeaders: true,
     legacyHeaders: false,
   });

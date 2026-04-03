@@ -10,6 +10,7 @@ class ApiError extends Error {
   static badRequest(message: string = "bad request"): ApiError {
     return new ApiError(400, message);
   }
+
   static unauthorised(message: string = "unauthorised"): ApiError {
     return new ApiError(400, message);
   }

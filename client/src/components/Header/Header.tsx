@@ -1,6 +1,7 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Show, UserButton, SignInButton } from '@clerk/react'
+import { Link } from 'lucide-react';
+
 
 const Header = () => {
 
@@ -16,7 +17,17 @@ const Header = () => {
         not all the time, but might be that one moment
       </p>
       <Show when="signed-in">
-        <UserButton />
+        <UserButton>
+          <UserButton.MenuItems>
+            <UserButton.Action
+              label="Manage Active Links"
+              labelIcon={<Link size={15} />}
+              onClick={() => navigate("/get-all")}
+            />
+          </UserButton.MenuItems>
+        </UserButton>
+
+
       </Show>
       <Show when="signed-out">
         <div className="border-2 border-border shadow-shadow bg-main">
