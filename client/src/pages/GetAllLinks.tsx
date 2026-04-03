@@ -20,6 +20,7 @@ function GetAllLinks() {
   const [allLinks, setAllLinks] = useState<Link[]>([])
   const [loading, setLoading] = useState(true)
 
+
   const fetchAllLinks = async () => {
     setLoading(true)
 
@@ -36,9 +37,11 @@ function GetAllLinks() {
             : []
 
       setAllLinks(links)
+
     } catch (error) {
       console.error(error)
       setAllLinks([])
+
     } finally {
       setLoading(false)
     }
@@ -48,10 +51,13 @@ function GetAllLinks() {
     fetchAllLinks()
   }, [])
 
+
+
+
   const copyToClipboard = (text?: string | null) => {
     if (!text) return
     navigator.clipboard.writeText(text)
-    toast.success("Copied to clipboard")
+    toast.success("copied to clipboard")
   }
 
   const formatDate = (iso?: string | null) =>
@@ -65,59 +71,61 @@ function GetAllLinks() {
 
   return (
     <div className="min-h-screen bg-background font-mono">
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* Header */}
-        <header className="bg-main border border-border w-fit px-4 py-2 mb-6 text-sm sm:text-base hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition">
-          Link Vault
-        </header>
+      <main className="max-w-5xl mx-auto px-8 py-9">
+        <header className="bg-main border border-border  w-fit p-2 my-4 hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1">Link Vault</header>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-40 bg-white border border-border shadow-shadow relative overflow-hidden"
+                className="h-44 bg-white border-2 border-border shadow-shadow relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-[#facc0040] to-transparent animate-[shimmer_1.2s_infinite]" />
               </div>
             ))}
           </div>
         ) : (
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+          <div className="grid grid-cols-1 sm:grid-row-2 gap-5">
             {allLinks.map((link) => (
               <div
                 key={link._id}
-                className="bg-white border-2 border-border p-4 sm:p-5 flex flex-col gap-3 hover:-translate-x-2 hover:-translate-y-2 hover:shadow-shadow transition-all"
+                className="bg-white border-2 border-border p-5 flex flex-col gap-3 hover:-translate-x-2 hover:-translate-y-2 hover:shadow-shadow transition-all"
               >
-
                 {/* Title */}
 
                 <div className="flex items-start justify-between gap-2">
-                  <span className="font-sans font-black text-sm sm:text-base">
+                  <span className="font-sans font-black text-base leading-tight">
                     {link.displayTitle || "Untitled"}
                   </span>
 
                   <span
-                    className={`w-4 h-4 rounded-full border border-border shrink-0 mt-1 ${link.mappedUrl ? "bg-[#15d600]" : "bg-[#d90808]"
+                    className={`w-4 h-4 rounded-full border- border-border shrink-0 mt-1 hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 ${link.mappedUrl ? "bg-[#15d600]" : "bg-[#d90808]"
                       }`}
                     title={link.mappedUrl ? "Active" : "Pending"}
                   />
                 </div>
 
-                {/* URL */}
+                {/* Mapped URL */}
 
                 {link.mappedUrl ? (
                   <a
                     href={link.mappedUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs break-all bg-background border border-border px-3 py-2 hover:underline hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition"
+                    className="flex items-center gap-2 bg-background border border-border px-3 py-1.5 text-xs text-gray-600 hover:text-black hover:underline hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 truncate"
                   >
-                    {link.mappedUrl}
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                      <path
+                        d="M4.5 1H1v9h9V7M7 1h3m0 0v3M7 4l3-3"
+                        stroke="#555"
+                        strokeWidth="1.3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+
+                    <span className="truncate">{link.mappedUrl}</span>
                   </a>
                 ) : (
                   <span className="text-xs text-gray-400">
@@ -127,58 +135,57 @@ function GetAllLinks() {
 
                 {/* Slug */}
 
+
                 <button
-                  onClick={() => copyToClipboard(`${window.location.origin}/l/${link.slug}`)}
-                  className="bg-main border border-border px-3 py-1 text-xs font-bold w-fit hover:bg-yellow-300 hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition"
+                  onClick={() =>
+                    copyToClipboard(`${window.location.origin}/l/${link.slug}`)
+                  }
+                  className="flex items-center gap-1.5 bg-main border border-border  px-2.5 py-1 text-xs font-bold w-fit hover:bg-yellow-300 hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors"
                 >
                   /{link.slug}
                 </button>
 
+
+
                 {/* Dates */}
 
-                <div className="flex flex-col sm:flex-row sm:justify-between text-xs sm:text-sm border-t border-dashed border-border pt-2 gap-1">
-                  <span>Created: {formatDate(link.createdAt)}</span>
-                  <span>Mapped: {formatDate(link.mappedOn)}</span>
+                <div className="flex justify-between text-sm text-black border-t border-dashed border-border pt-2.5">
+                  <span>Created On: {formatDate(link.createdAt)}</span>
+                  <span>Mapped On: {formatDate(link.mappedOn)}</span>
                 </div>
 
-                {/* Buttons */}
+                {/* Actions */}
 
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex flex-row flex-wrap gap-2 sm:gap-2">
 
-                  <Button
-                    onClick={() => copyToClipboard(link.mappedUrl)}
-                    disabled={!link.mappedUrl}
-                    className="flex-1 min-w-30 h-8 rounded-none border border-border bg-white text-xs font-bold hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1"
-                  >
-                    Copy URL
+                  <Button onClick={() => copyToClipboard(link.mappedUrl)} disabled={!link.mappedUrl} className="flex-1 h-8 rounded-none border border-border  bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors" >
+                    Copy Public URL ↗
                   </Button>
 
-                  <Button
-                    onClick={() => link.mappedUrl && window.open(link.mappedUrl, "_blank")}
+                  <Button onClick={() =>
+                    link.mappedUrl && window.open(link.mappedUrl, "_blank")
+                  }
                     disabled={!link.mappedUrl}
-                    className={`flex-1 min-w-30 h-8 rounded-none border border-border bg-white text-xs font-bold hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 ${!link.mappedUrl ? "cursor-not-allowed opacity-60" : ""
-                      }`}
-                  >
-                    Visit ↗
-                  </Button>
+                    className={`flex-1 h-8 rounded-none border border-border  bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors ${!link.mappedUrl ? "cursor-none" : "cursor-pointer"} `}>Visit Public Url ↗</Button>
+
+
 
                   <Button
-                    onClick={() => link.manageUrl && window.open(link.manageUrl, "_blank")}
+                    onClick={() =>
+                      link.manageUrl && window.open(link.manageUrl, "_blank")
+                    }
                     disabled={!link.manageUrl}
-                    className="flex-1 min-w-30 h-8 rounded-none border border-border bg-white text-xs font-bold hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1"
+                    className={`flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors`}
                   >
-                    Manage ↗
+                    Manage Url ↗
                   </Button>
-
                 </div>
-
               </div>
             ))}
-
           </div>
         )}
-
       </main>
+
     </div>
   )
 }
