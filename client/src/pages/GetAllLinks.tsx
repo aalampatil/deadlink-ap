@@ -1,55 +1,27 @@
-import axiosApi from "@/config/axiosApi"
-import React, { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { Button } from "@/components/ui/button"
+import { useFetchLinksStore } from "../store/LinkStore"
+import axios from "axios"
 
-interface Link {
-  _id: string
-  displayTitle: string
-  slug: string
-  mappedUrl: string | null
-  ownerId: string
-  createdAt: string
-  publicUrl: string
-  manageUrl: string
-  mappedOn: string | null
-  updatedAt: string
-}
 
 function GetAllLinks() {
-  const [allLinks, setAllLinks] = useState<Link[]>([])
-  const [loading, setLoading] = useState(true)
 
-
-  const fetchAllLinks = async () => {
-    setLoading(true)
-
-    try {
-      const response = await axiosApi.get("/link/get-all")
-      const data = response.data
-
-      const links: Link[] = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.links)
-          ? data.links
-          : Array.isArray(data?.data)
-            ? data.data
-            : []
-
-      setAllLinks(links)
-
-    } catch (error) {
-      console.error(error)
-      setAllLinks([])
-
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { allLinks, loading, fetchAllLinks } = useFetchLinksStore()
 
   useEffect(() => {
-    fetchAllLinks()
-  }, [])
+    const handleFetch = async () => {
+      try {
+        await fetchAllLinks()
+      } catch (err) {
+        const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
+          ? err.response.data.message
+          : "Failed to fetch links";
+        toast.error(errorMessage);
+      }
+    }
+    handleFetch()
+  }, [fetchAllLinks])
 
 
 
@@ -87,7 +59,7 @@ function GetAllLinks() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-row-2 gap-5">
-            {allLinks.map((link) => (
+            {allLinks?.map((link) => (
               <div
                 key={link._id}
                 className="bg-white border-2 border-border p-5 flex flex-col gap-3 hover:-translate-x-2 hover:-translate-y-2 hover:shadow-shadow transition-all"

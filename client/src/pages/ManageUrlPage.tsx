@@ -1,58 +1,36 @@
 import { Button } from "@/components/ui/button";
-import { axiosApi } from "@/config/axiosApi";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/react";
 import { toast } from "react-toastify";
-
-interface LinkData {
-    slug: string;
-    displayTitle: string;
-    status: string;
-    mappedUrl?: string | null;
-    mappedOn?: string | null;
-}
+import { useManageLinkStore } from "@/store/LinkStore";
 
 const ManageUrlPage = () => {
+
+    const { data, fetchLink, mapUrl, loading, fetching, targetUrl, setTargetUrl } = useManageLinkStore()
+
     const navigate = useNavigate();
     const { slug } = useParams();
     const { isLoaded, isSignedIn } = useAuth();
 
-    const [data, setData] = useState<LinkData | null>(null);
-    const [targetUrl, setTargetUrl] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(false);
-
-    const fetchLink = useCallback(async () => {
+    const handleFetch = useCallback(async () => {
         if (!slug) return;
-        setFetching(true);
-        try {
-            const res = await axiosApi.get(`/link/public/${slug}`);
-            setData(res.data);
-        } catch (err) {
-            toast.error(err?.response?.data?.message || "Failed to fetch link");
-        } finally {
-            setFetching(false);
-        }
-    }, [slug]);
 
-    const mapUrl = async () => {
+        await fetchLink(slug)
+
+    }, [slug, fetchLink]);
+
+    const handleMap = async () => {
         if (!slug) return;
+
         if (!targetUrl.trim()) {
             toast.error("Please enter a target URL");
             return;
         }
-        try {
-            setLoading(true);
-            await axiosApi.post(`/link/${slug}/map`, { targetUrl });
-            await fetchLink();
-            setTargetUrl("");
-            toast.success("URL mapped successfully!");
-        } catch (err) {
-            toast.error(err?.response?.data?.message || "Failed to map URL");
-        } finally {
-            setLoading(false);
-        }
+
+        await mapUrl(slug)
+        toast.success("URL mapped successfully!");
+
     };
 
     const copyText = async (text: string) => {
@@ -77,7 +55,7 @@ const ManageUrlPage = () => {
             navigate("/sign-in");
             return;
         }
-        fetchLink();
+        handleFetch();
     }, [slug, isLoaded, isSignedIn, fetchLink, navigate]);
 
     return (
@@ -135,7 +113,7 @@ const ManageUrlPage = () => {
                     />
 
                     <Button
-                        onClick={mapUrl}
+                        onClick={handleMap}
                         disabled={loading || fetching}
                         size="lg"
                         className="w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none"

@@ -1,49 +1,30 @@
 import { Button } from "@/components/ui/button";
-import React, { useState, useRef } from "react";
-import { axiosApi } from "@/config/axiosApi";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { useAuth } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
+import { useGenerateLinkStore } from "@/store/LinkStore";
+import axios from "axios";
 
 const GenerateLink = () => {
-  const [displayTitle, setDisplayTitle] = useState("");
-  const [data, setData] = useState<null | {
-    slug: string;
-    displayTitle: string;
-    publicUrl: string;
-    manageUrl: string;
-  }>(null);
-  const [loading, setLoading] = useState(false);
-  const requestLock = useRef(false);
-
+  const { displayTitle, data, loading, setDisplayTitle, createLink } = useGenerateLinkStore();
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
 
-  const createLink = async () => {
+  const handleCreate = async () => {
     if (!isSignedIn) {
       toast.error("You must be signed in to generate links");
       navigate("/sign-in");
       return;
     }
-
-    if (requestLock.current) return;
-    requestLock.current = true;
-
     try {
-      setLoading(true);
-
-      const res = await axiosApi.post("/link/create", { displayTitle });
-      console.log(res)
-      setData(res.data);
-
+      await createLink();
       toast.success("Link generated successfully!");
     } catch (err) {
-      console.error(err);
-      toast.error(err?.response?.data?.message || "Failed to generate link");
-    } finally {
-      setLoading(false);
-      requestLock.current = false;
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Failed to generate link";
+      toast.error(errorMessage);
     }
   };
 
@@ -51,7 +32,6 @@ const GenerateLink = () => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
   };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 gap-8">
 
@@ -76,7 +56,7 @@ const GenerateLink = () => {
         <Button
           disabled={loading}
           size="lg"
-          onClick={createLink}
+          onClick={handleCreate}
           className="text-2xl w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading"
         >
           {loading ? "Generating..." : "Generate Link"}

@@ -1,43 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { axiosApi } from "@/config/axiosApi";
-import { Button } from "@/components/ui/button";
 
-type LinkData = {
-    slug: string;
-    status: "pending" | "ready";
-    displayTitle: string;
-    mappedUrl: string | null;
-};
+import { Button } from "@/components/ui/button";
+import { usePublicLinkStore } from "@/store/LinkStore";
+
 
 const PublicUrl = () => {
     const { slug } = useParams();
-    const [data, setData] = useState<LinkData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
-    const fetchLink = async () => {
-        try {
-            const res = await axiosApi.get(`/link/public/${slug}`);
-            const link = res.data as LinkData;
-
-            if (link?.mappedUrl) {
-                // Redirect if mapped
-                window.location.href = link.mappedUrl;
-                return;
-            }
-
-            setData(link);
-        } catch (err) {
-            console.error(err);
-            setData(null);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { isLoading, data, fetchLink } = usePublicLinkStore()
 
     useEffect(() => {
-        if (slug) fetchLink();
-    }, [slug]);
+        const handleFetch = async () => {
+            if (!slug) return
+            await fetchLink(slug)
+        };
+
+        if (slug) handleFetch();
+    }, [slug, fetchLink]);
 
     if (isLoading) {
         return (
@@ -77,7 +57,7 @@ const PublicUrl = () => {
                 <p className="text-sm">The owner will update this link soon.</p>
 
                 <Button
-                    onClick={() => fetchLink()}
+                    onClick={() => slug && fetchLink(slug)}
                     className="mt-4 bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading"
                 >
                     Refresh
