@@ -31,3 +31,9 @@ Error handling stays in the component — Toasts are UI side-effects, so the sto
   // if (Array.isArray((data as any)?.data)) return (data as any).data;
   const obj = data as { links?: unknown; data?: unknown };
 ```
+
+```
+VITE_BACKEND=http://localhost:5000/api
+VITE_SERVER=https://deadlink-ap.onrender.com/api
+VITE_CLERK_PUBLISHABLE_KEY=
+```
