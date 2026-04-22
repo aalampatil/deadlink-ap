@@ -8,7 +8,6 @@ const envSchema = z.object({
   CLERK_PUBLISHABLE_KEY: z.string(),
   CLERK_SECRET_KEY: z.string(),
   DATABASE_URL: z.string(),
-  DATABASE_URL_PRODUCTION: z.string(),
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {
