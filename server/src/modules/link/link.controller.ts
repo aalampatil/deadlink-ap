@@ -1,11 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import { nanoid } from "nanoid";
-import linkModel from "./link.model.js";
+import { db } from "../../db/index.js";
 import ApiError from "../../utils/api-error.js";
 import { validateUrl } from "../../utils/utils.js";
 import { getAuth } from "@clerk/express";
-
 import { isProduction } from "../../index.js";
+import { linksTable } from "../../db/schema.js";
+import { eq } from "drizzle-orm";
 
 const createLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -15,34 +16,36 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
     const { displayTitle } = req.body || {};
     const slug = nanoid(12);
 
-    const link = await linkModel.create({
-      slug,
-      displayTitle:
-        typeof displayTitle === "string"
-          ? displayTitle.trim().slice(0, 120)
-          : "",
-      ownerId: userId,
-    });
+    const cleanTitle =
+      typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "";
 
-    if (!link) throw ApiError.internalError("Failed to create URL");
-
+    console.log(process.env.CLIENT);
     const publicBaseUrl = isProduction
       ? process.env.CLIENT
       : process.env.FRONTEND;
-    const publicUrl = `${publicBaseUrl}/l/${link.slug}`;
-    const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(
-      link.slug,
-    )}`;
 
-    link.publicUrl = publicUrl;
-    link.manageUrl = manageUrl;
+    const publicUrl = `${publicBaseUrl}/l/${slug}`;
+    const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(slug)}`;
 
-    await link.save({ validateBeforeSave: false });
+    const [link] = await db
+      .insert(linksTable)
+      .values({
+        slug,
+        displayTitle: cleanTitle,
+        ownerId: userId,
+        publicUrl,
+        manageUrl,
+      })
+      .returning();
+    console.log(link);
+
+    if (!link) throw ApiError.internalError("failed to create db");
+
     res.status(201).json({
       slug: link.slug,
       displayTitle: link.displayTitle,
-      publicUrl,
-      manageUrl,
+      publicUrl: link.publicUrl,
+      manageUrl: link.manageUrl,
     });
   } catch (error) {
     next(error);
@@ -52,17 +55,24 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
 const publicLink = async (req: Request, res: Response) => {
   const { slug } = req.params;
   if (!slug) throw ApiError.badRequest();
-  const link = await linkModel.findOne({ slug }).lean();
+
+  const [link] = await db
+    .select()
+    .from(linksTable)
+    .where(eq(linksTable.slug, slug as string));
+
   if (!link) throw ApiError.notfound();
 
   res.json({
     slug: link.slug,
-    status: link.mappedUrl ? "ready" : "pending",
+    status: link.status, // ✅ from computed column
     displayTitle: link.displayTitle,
     mappedUrl: link.mappedUrl ?? null,
     mappedOn: link.mappedOn,
   });
 };
+
+//#endregion
 
 // MANAGE LINK (requires auth + ownership)
 const manageLink = async (req: Request, res: Response) => {
@@ -71,13 +81,18 @@ const manageLink = async (req: Request, res: Response) => {
 
   const { slug } = req.query;
   if (typeof slug !== "string") throw ApiError.badRequest();
-  const link = await linkModel.findOne({ slug });
+
+  const [link] = await db
+    .select()
+    .from(linksTable)
+    .where(eq(linksTable.slug, slug));
+
   if (!link) throw ApiError.notfound();
   if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
   res.json({
     slug: link.slug,
-    status: link.mappedUrl ? "ready" : "pending",
+    status: link.status,
     displayTitle: link.displayTitle,
     mappedUrl: link.mappedUrl ?? null,
     mappedOn: link.mappedOn,
@@ -87,42 +102,50 @@ const manageLink = async (req: Request, res: Response) => {
 const mapLink = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
   if (!userId) throw ApiError.unauthorised();
+
   const { slug } = req.params;
   const { targetUrl } = req.body || {};
-  if (!slug || typeof targetUrl !== "string") throw ApiError.badRequest();
-  const link = await linkModel.findOne({ slug, ownerId: userId });
+
+  if (!slug || typeof targetUrl !== "string") {
+    throw ApiError.badRequest();
+  }
+
+  const validUrl = validateUrl(targetUrl);
+
+  const [link] = await db
+    .update(linksTable)
+    .set({
+      mappedUrl: validUrl,
+      mappedOn: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(linksTable.slug, slug as string))
+    .returning();
+
   if (!link) throw ApiError.notfound();
-  // if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
-  link.mappedUrl = validateUrl(targetUrl);
-  link.mappedOn = new Date();
-  await link.save({ validateBeforeSave: false });
+  if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
   res.json({
     slug: link.slug,
-    status: "ready",
+    status: link.status, // auto from DB
     mappedUrl: link.mappedUrl,
     mappedOn: link.mappedOn,
   });
 };
 
 const getAllLinks = async (req: Request, res: Response) => {
-  try {
-    const { userId } = getAuth(req);
+  const { userId } = getAuth(req);
+  if (!userId) throw ApiError.unauthorised();
 
-    if (!userId) {
-      throw ApiError.unauthorised();
-    }
+  const links = await db
+    .select()
+    .from(linksTable)
+    .where(eq(linksTable.ownerId, userId));
 
-    const links = await linkModel.find({ ownerId: userId });
-
-    return res.status(200).json({
-      success: true,
-      data: links,
-    });
-  } catch (error) {
-    console.error("Error fetching links:", error);
-    throw ApiError.notfound("failed to fetch links");
-  }
+  res.status(200).json({
+    success: true,
+    data: links,
+  });
 };
 
 export { createLink, publicLink, manageLink, mapLink, getAllLinks };
