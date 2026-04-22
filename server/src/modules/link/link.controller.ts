@@ -7,6 +7,7 @@ import { getAuth } from "@clerk/express";
 import { isProduction } from "../../index.js";
 import { linksTable } from "../../db/schema.js";
 import { eq } from "drizzle-orm";
+import { env } from "../../env.js";
 
 const createLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,10 +20,7 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
     const cleanTitle =
       typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "";
 
-    console.log(process.env.CLIENT);
-    const publicBaseUrl = isProduction
-      ? process.env.CLIENT
-      : process.env.FRONTEND;
+    const publicBaseUrl = isProduction ? env.CLIENT : env.FRONTEND;
 
     const publicUrl = `${publicBaseUrl}/l/${slug}`;
     const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(slug)}`;

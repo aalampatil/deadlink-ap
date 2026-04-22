@@ -1,9 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
+import "dotenv/config";
+import { env } from "./env.js";
+export const isProduction = env.NODE_ENV === "production";
 import createApp from "./app.js";
 import { connectDB } from "./db/db.js";
-export const isProduction = process.env.NODE_ENV === "production";
-const PORT = process.env.PORT || "5000";
+
+const PORT = env.PORT ?? "5000";
 
 if (!isProduction) {
   console.log("check 00");
@@ -14,7 +15,7 @@ async function main() {
   const app = createApp();
   app.listen(PORT, () => {
     console.log(
-      `deadlink-ap server listening on :${PORT} in ${process.env.NODE_ENV} mode`,
+      `deadlink-ap server listening on :${PORT} in ${env.NODE_ENV} mode`,
     );
   });
 }
