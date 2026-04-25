@@ -20,6 +20,7 @@ type LinkData = {
   mappedOn: string | null;
   mappedUrl: string | null;
   status: boolean | "pending" | "ready";
+  contentType: string | null;
   createdAt: string;
   updatedAt: string;
 };
