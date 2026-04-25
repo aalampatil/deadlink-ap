@@ -1,5 +1,7 @@
-import { uuid, pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
+import { uuid, pgTable, varchar, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+
+export const contentTypeEnum = pgEnum("content_type_enum", ["Post", "File"]);
 
 export const linksTable = pgTable("links", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -21,5 +23,12 @@ export const linksTable = pgTable("links", {
           WHEN mapped_url IS NOT NULL THEN 'ready' 
           ELSE 'pending' 
         END`,
+  ),
+  contentType: contentTypeEnum("content_type"), // post or file
+  contentSubType: varchar("content_sub_type", { length: 40 }), // x, yt, linkedin, pdf, image, docx,
+  fileSecureURL: varchar("file_secure_url", { length: 2048 }),
+  filePublicId: varchar("file_public_id", { length: 2048 }),
+  linkValidity: timestamp("link_validity").default(
+    sql`now() + interval '30 days'`,
   ),
 });

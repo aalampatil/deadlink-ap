@@ -20,6 +20,7 @@ type LinkData = {
   mappedOn: string | null;
   mappedUrl: string | null;
   status: boolean | "pending" | "ready";
+  contentType: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -101,11 +102,15 @@ export const useFetchLinksStore = create<FetchLinksStore>((set, get) => ({
 
 type ManageLinkStore = {
   data: LinkData | null;
+  contentType: string | null;
+  file: File | null;
   targetUrl: string;
   loading: boolean;
   fetching: boolean;
 
   setTargetUrl: (url: string) => void;
+  setContentType: (type: string) => void;
+  setFile: (file: File) => void;
   fetchLink: (slug: string) => Promise<void>;
   mapUrl: (slug: string) => Promise<void>;
 };
@@ -113,6 +118,9 @@ type ManageLinkStore = {
 export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
   data: null,
   targetUrl: "",
+  contentType: null,
+  file: null,
+
   fetching: false,
   loading: false,
 
@@ -120,10 +128,19 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
     set({ targetUrl: url });
   },
 
+  setContentType: (type) => {
+    set({ contentType: type });
+  },
+
+  setFile: (file) => {
+    set({ file: file });
+  },
+
   fetchLink: async (slug) => {
     try {
       set({ fetching: true });
-      const res = await axiosApi.get(`/link/public/${slug}`);
+      const res = await axiosApi.get(`/link/manage/${slug}`);
+      // console.log("manage link", res);
       set({
         data: res.data,
       });
@@ -142,22 +159,36 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
     try {
       set({ loading: true });
 
-      const { targetUrl } = get();
+      const { targetUrl, file, contentType } = get();
+      console.log(targetUrl, file, contentType);
 
-      const res = await axiosApi.post(`/link/${slug}/map`, {
-        targetUrl,
+      if (!contentType) throw new Error("content type is missing");
+      const formdata = new FormData();
+      formdata.append("contentType", contentType);
+      if (targetUrl) formdata.append("targetUrl", targetUrl);
+      if (file) formdata.append("file", file);
+      console.log("yahn");
+
+      const res = await axiosApi.post(`/link/${slug}/map`, formdata, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+
+      console.log(res);
+
+      // send file with the body
 
       set({
         data: res.data,
         targetUrl: "",
       });
     } catch (err: unknown) {
+      console.log(err);
       const message =
         err instanceof Error && "response" in err
           ? (err as AxiosErrorResponse).response?.data?.message
           : "An error occurred while mapping";
-      toast.error(message);
       toast.error(message);
     } finally {
       set({ loading: false });

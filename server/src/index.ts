@@ -2,7 +2,7 @@ import "dotenv/config";
 import { env } from "./env.js";
 export const isProduction = env.NODE_ENV === "production";
 import createApp from "./app.js";
-import { connectDB } from "./db/db.js";
+
 
 const PORT = env.PORT ?? "5000";
 
@@ -11,7 +11,6 @@ if (!isProduction) {
 }
 
 async function main() {
-  await connectDB();
   const app = createApp();
   app.listen(PORT, () => {
     console.log(

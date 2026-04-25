@@ -7,7 +7,8 @@ import { useManageLinkStore } from "@/store/LinkStore";
 
 const ManageUrlPage = () => {
 
-    const { data, fetchLink, mapUrl, loading, fetching, targetUrl, setTargetUrl } = useManageLinkStore()
+    const { data, fetchLink, mapUrl, loading, fetching, targetUrl, setTargetUrl, file, setFile, contentType, setContentType } = useManageLinkStore()
+    // add file state , file -
 
     const navigate = useNavigate();
     const { slug } = useParams();
@@ -23,12 +24,24 @@ const ManageUrlPage = () => {
     const handleMap = async () => {
         if (!slug) return;
 
-        if (!targetUrl.trim()) {
-            toast.error("Please enter a target URL");
+        if (!contentType) {
+            toast.error("Select Content Type");
             return;
         }
 
+        if (contentType === "Post" && !targetUrl.trim()) {
+            toast.error("Please enter a target URL");
+            return;
+        }
+        if (contentType === "File" && !file) {
+            toast.error("Please select a file");
+            return;
+        }
+
+
+
         await mapUrl(slug)
+        // todo - send content_type and file
         toast.success("URL mapped successfully!");
 
     };
@@ -56,7 +69,7 @@ const ManageUrlPage = () => {
             return;
         }
         handleFetch();
-    }, [slug, isLoaded, isSignedIn, fetchLink, navigate]);
+    }, [slug, isLoaded, isSignedIn, fetchLink, navigate, handleFetch]);
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -105,12 +118,30 @@ const ManageUrlPage = () => {
                 <div className="border-4 border-border shadow-shadow bg-main p-4 flex flex-col gap-4">
                     <h2 className="text-xl font-heading">Map Final URL</h2>
 
-                    <input
-                        value={targetUrl}
-                        onChange={(e) => setTargetUrl(e.target.value)}
-                        placeholder="https://your-final-work.com"
-                        className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
-                    />
+                    <select name="" id="" onChange={(e) => setContentType(e.target.value)} className="border-2 border-border p-3 shadow-shadow bg-secondary-background">
+                        <option value="">Select Content Type</option>
+                        <option value="Post">Post</option>
+                        <option value="File">File</option>
+                    </select>
+
+                    {contentType === "Post" ? (
+                        <input
+                            type="text"
+                            value={targetUrl}
+                            onChange={(e) => setTargetUrl(e.target.value)}
+                            placeholder="https://your-final-work.com"
+                            className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
+                        />
+                    ) : (
+                        <input
+                            type="file"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) setFile(file);
+                            }}
+                            className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
+                        />
+                    )}
 
                     <Button
                         onClick={handleMap}

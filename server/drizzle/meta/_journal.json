@@ -8,6 +8,20 @@
       "when": 1776849569294,
       "tag": "0000_white_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777104032732,
+      "tag": "0001_fancy_slayback",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777104060515,
+      "tag": "0002_overjoyed_mathemanic",
+      "breakpoints": true
     }
   ]
 }
