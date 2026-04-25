@@ -1,0 +1,1 @@
+CREATE TYPE "public"."content_type_enum" AS ENUM('Post', 'File');

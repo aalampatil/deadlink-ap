@@ -24,10 +24,10 @@ export const linksTable = pgTable("links", {
           ELSE 'pending' 
         END`,
   ),
+  contentType: contentTypeEnum("content_type"), // post or file
+  contentSubType: varchar("content_sub_type", { length: 40 }), // x, yt, linkedin, pdf, image, docx,
   fileSecureURL: varchar("file_secure_url", { length: 2048 }),
-  filePublicId: varchar("file_public_id", { length: 20248 }),
-  contentType: contentTypeEnum("content_type"),
-
+  filePublicId: varchar("file_public_id", { length: 2048 }),
   linkValidity: timestamp("link_validity").default(
     sql`now() + interval '30 days'`,
   ),
@@ -37,3 +37,4 @@ export const linksTable = pgTable("links", {
 // 1 - generate schema
 // 2 - push to local db
 // 3 - after testing push to production db
+// 4 - also add a status based on file availiblity

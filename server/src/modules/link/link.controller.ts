@@ -8,6 +8,10 @@ import { isProduction } from "../../index.js";
 import { linksTable } from "../../db/schema.js";
 import { eq } from "drizzle-orm";
 import { env } from "../../env.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../../utils/cloudinary.js";
 
 const createLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -77,7 +81,8 @@ const manageLink = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
   if (!userId) throw ApiError.unauthorised();
 
-  const { slug } = req.query;
+  const { slug } = req.params;
+  // console.log(slug);
   if (typeof slug !== "string") throw ApiError.badRequest();
 
   const [link] = await db
@@ -103,6 +108,15 @@ const mapLink = async (req: Request, res: Response) => {
 
   const { slug } = req.params;
   const { targetUrl } = req.body || {};
+
+  // get content_type here
+  // if (content_type = post) then validate url and set the target url to mapped url
+  // validate file extensions on both detect and content_type basis and define a content_sub_type by reading url or file name
+  // if target url throw error
+  // else if (content_type = file) then upload the url and set the mapped url to cloudinary upload url
+  // todo
+  // handle file
+  // upload file
 
   if (!slug || typeof targetUrl !== "string") {
     throw ApiError.badRequest();

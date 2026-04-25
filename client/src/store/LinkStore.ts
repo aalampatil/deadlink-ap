@@ -123,7 +123,8 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
   fetchLink: async (slug) => {
     try {
       set({ fetching: true });
-      const res = await axiosApi.get(`/link/public/${slug}`);
+      const res = await axiosApi.get(`/link/manage/${slug}`);
+      // console.log("manage link", res);
       set({
         data: res.data,
       });

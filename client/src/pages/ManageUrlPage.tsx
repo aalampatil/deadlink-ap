@@ -56,7 +56,7 @@ const ManageUrlPage = () => {
             return;
         }
         handleFetch();
-    }, [slug, isLoaded, isSignedIn, fetchLink, navigate]);
+    }, [slug, isLoaded, isSignedIn, fetchLink, navigate, handleFetch]);
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
