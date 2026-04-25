@@ -12,6 +12,7 @@ import {
   uploadOnCloudinary,
   deleteFromCloudinary,
 } from "../../utils/cloudinary.js";
+import { object } from "zod";
 
 const createLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -78,8 +79,6 @@ const publicLink = async (req: Request, res: Response) => {
   });
 };
 
-//#endregion
-
 // MANAGE LINK (requires auth + ownership)
 const manageLink = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
@@ -106,48 +105,134 @@ const manageLink = async (req: Request, res: Response) => {
   });
 };
 
+//#region
+
+const POST_SUB_TYPE_PATTERN: Record<string, RegExp> = {
+  x: /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/.+/i,
+  yt: /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/.+/i,
+  linkedin: /^https?:\/\/(www\.)?linkedin\.com\/.+/i,
+};
+
+const FILE_MIME_TO_SUB_TYPE: Record<string, string> = {
+  "application/pdf": "pdf",
+  "application/msword": "docx",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    "docx",
+  "image/jpeg": "image",
+  "image/png": "image",
+  "image/gif": "image",
+  "image/webp": "image",
+  "video/mp4": "video",
+  "video/mkv": "video",
+};
+
+const ALLOWED_FILE_MIME_TYPES = Object.keys(FILE_MIME_TO_SUB_TYPE);
+
+function detectPostSubType(url: string): string | null {
+  for (const [subType, pattern] of Object.entries(POST_SUB_TYPE_PATTERN)) {
+    if (pattern.test(url)) return subType;
+  }
+  return null;
+}
+
+function detectFileSubType(mimeType: string): string | null {
+  return FILE_MIME_TO_SUB_TYPE[mimeType] ?? null;
+}
+
 const mapLink = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
   if (!userId) throw ApiError.unauthorised();
 
   const { slug } = req.params;
-  const { targetUrl } = req.body || {};
+  const { targetUrl, contentType } = req.body || {};
 
-  // get content_type here
-  // if (content_type = post) then validate url and set the target url to mapped url
-  // validate file extensions on both detect and content_type basis and define a content_sub_type by reading url or file name
-  // if target url throw error
-  // else if (content_type = file) then upload the url and set the mapped url to cloudinary upload url
-  // todo
-  // handle file
-  // upload file
-
-  if (!slug || typeof targetUrl !== "string") {
-    throw ApiError.badRequest();
+  if (contentType !== "Post" && contentType !== "File") {
+    throw ApiError.badRequest("contentType must be 'Post' or 'File'");
   }
 
-  const validUrl = validateUrl(targetUrl);
-
   const [link] = await db
-    .update(linksTable)
-    .set({
-      mappedUrl: validUrl,
-      mappedOn: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(linksTable.slug, slug as string))
-    .returning();
+    .select()
+    .from(linksTable)
+    .where(eq(linksTable.slug, slug as string));
 
   if (!link) throw ApiError.notfound();
   if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
-  res.json({
-    slug: link.slug,
-    status: link.status, // auto from DB
-    mappedUrl: link.mappedUrl,
-    mappedOn: link.mappedOn,
-  });
+  //post
+  if (contentType === "Post") {
+    if (!slug || typeof targetUrl !== "string") {
+      throw ApiError.badRequest();
+    }
+    const validUrl = validateUrl(targetUrl);
+    const contentSubType = detectPostSubType(validUrl);
+
+    const [link] = await db
+      .update(linksTable)
+      .set({
+        mappedUrl: validUrl,
+        mappedOn: new Date(),
+        updatedAt: new Date(),
+        contentType: "Post",
+        contentSubType,
+      })
+      .where(eq(linksTable.slug, slug as string))
+      .returning();
+
+    if (!link) throw ApiError.notfound();
+    if (link.ownerId !== userId) throw ApiError.forbidden;
+
+    res.json({
+      slug: link.slug,
+      status: link.status, // auto from DB
+      mappedUrl: link.mappedUrl,
+      mappedOn: link.mappedOn,
+    });
+  }
+
+  if (contentType === "File") {
+    const file = req.file;
+    if (!file)
+      throw ApiError.badRequest("A file upload is required for File type");
+
+    if (!ALLOWED_FILE_MIME_TYPES.includes(file.mimetype)) {
+      throw ApiError.badRequest(
+        `Unsupported file type '${file.mimetype}'. Allowed: ${ALLOWED_FILE_MIME_TYPES.join(", ")}`,
+      );
+    }
+
+    const contentSubType = detectFileSubType(file.mimetype);
+    const cloudinaryResponse = await uploadOnCloudinary(file.path);
+
+    if (!cloudinaryResponse) {
+      throw ApiError.internalError("File upload to Cloudinary failed");
+    }
+
+    const [link] = await db
+      .update(linksTable)
+      .set({
+        contentType: "File",
+        contentSubType,
+        mappedUrl: cloudinaryResponse.secure_url,
+        fileSecureURL: cloudinaryResponse.secure_url,
+        filePublicId: cloudinaryResponse.public_id,
+        mappedOn: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(linksTable.slug, slug as string))
+      .returning();
+
+    if (!link) throw ApiError.internalError("failed to map link");
+
+    res.json({
+      slug: link.slug,
+      status: link.status, // auto from DB
+      mappedUrl: link.mappedUrl,
+      mappedOn: link.mappedOn,
+    });
+  }
 };
+
+//#endregion
 
 const getAllLinks = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
