@@ -12,7 +12,6 @@ import { upload } from "../../middlewares/upload.middleware.js";
 const linkRouter = Router();
 
 linkRouter.post("/create", requireAuth(), createLink);
-// todo - add upload here
 linkRouter.get("/public/:slug", publicLink);
 linkRouter.get("/manage/:slug", requireAuth(), manageLink);
 linkRouter.post("/:slug/map", requireAuth(), upload.single("file"), mapLink);

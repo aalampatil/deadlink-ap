@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { useFetchLinksStore } from "../store/LinkStore"
 import axios from "axios"
 
+// todo - add content type and delete button to card
+// and instead of redirecting file, make the file download
+
 
 function GetAllLinks() {
 
@@ -76,6 +79,8 @@ function GetAllLinks() {
                       }`}
                     title={link.mappedUrl ? "Active" : "Pending"}
                   />
+
+
                 </div>
 
                 {/* Mapped URL */}

@@ -116,7 +116,9 @@ const mapLink = async (req: Request, res: Response) => {
   if (!userId) throw ApiError.unauthorised();
 
   const { slug } = req.params;
+  console.log(req.body);
   const { targetUrl, contentType } = req.body || {};
+  console.log(contentType);
 
   if (contentType !== "Post" && contentType !== "File") {
     throw ApiError.badRequest("contentType must be 'Post' or 'File'");

@@ -42,7 +42,7 @@ const deleteFromCloudinary = async (public_id: string): Promise<any> => {
     }
 
     const result = await cloudinary.uploader.destroy(public_id, {
-      resource_type: "image",
+      resource_type: "auto",
     });
 
     if (result.result !== "ok" && result.result !== "not found") {
