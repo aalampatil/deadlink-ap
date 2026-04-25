@@ -32,9 +32,3 @@ export const linksTable = pgTable("links", {
     sql`now() + interval '30 days'`,
   ),
 });
-
-//todo
-// 1 - generate schema
-// 2 - push to local db
-// 3 - after testing push to production db
-// 4 - also add a status based on file availiblity

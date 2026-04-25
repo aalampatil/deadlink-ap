@@ -19,10 +19,14 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
     if (!userId) throw ApiError.unauthorised();
 
     const { displayTitle } = req.body || {};
-    const slug = nanoid(12);
-
     const cleanTitle =
       typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "";
+    let slug;
+    if (!displayTitle) {
+      slug = nanoid(12);
+    } else {
+      slug = cleanTitle;
+    }
 
     const publicBaseUrl = isProduction ? env.CLIENT : env.FRONTEND;
 
