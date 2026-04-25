@@ -5,6 +5,7 @@ import {
   manageLink,
   mapLink,
   publicLink,
+  deleteLink,
 } from "./link.controller.js";
 import { requireAuth } from "@clerk/express";
 import { upload } from "../../middlewares/upload.middleware.js";
@@ -16,5 +17,5 @@ linkRouter.get("/public/:slug", publicLink);
 linkRouter.get("/manage/:slug", requireAuth(), manageLink);
 linkRouter.post("/:slug/map", requireAuth(), upload.single("file"), mapLink);
 linkRouter.get("/get-all", requireAuth(), getAllLinks);
-// todo add a delete route
+linkRouter.delete("/delete/:slug", requireAuth(), deleteLink);
 export default linkRouter;
