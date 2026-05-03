@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useAuth } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { useGenerateLinkStore } from "@/store/LinkStore";
-import axios from "axios";
 
 const GenerateLink = () => {
   const { displayTitle, data, loading, setDisplayTitle, createLink } = useGenerateLinkStore();
@@ -17,14 +16,9 @@ const GenerateLink = () => {
       navigate("/sign-in");
       return;
     }
-    try {
-      await createLink();
+    const created = await createLink();
+    if (created) {
       toast.success("Link generated successfully!");
-    } catch (err) {
-      const errorMessage = axios.isAxiosError(err) && err.response?.data?.message
-        ? err.response.data.message
-        : "Failed to generate link";
-      toast.error(errorMessage);
     }
   };
 

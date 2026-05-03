@@ -26,8 +26,8 @@ No broken links. No "coming soon" pages. The placeholder link always works.
 | -------------------- | ------------------------------------ |
 | `express`            | HTTP server                          |
 | `drizzle-orm` + `pg` | Primary database ORM + PostgreSQL    |
-| `mongoose`           | MongoDB (submission content storage) |
 | `@clerk/express`     | Authentication                       |
+| `cloudinary`         | Uploaded file storage                |
 | `nanoid`             | Short unique link ID generation      |
 | `zod`                | Request validation                   |
 | `express-rate-limit` | Rate limiting                        |
@@ -62,8 +62,8 @@ deadlink-ap/
 
 - Node.js 18+
 - PostgreSQL database
-- MongoDB database
 - A [Clerk](https://clerk.com) account for auth
+- A Cloudinary account for file uploads
 
 ### Installation
 
@@ -83,12 +83,14 @@ PORT=3000
 # PostgreSQL
 DATABASE_URL=postgresql://user:password@localhost:5432/deadlink
 
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/deadlink
-
 # Clerk
 CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
 ```
 
 For production, create `.env.production` with the same keys pointing to your production databases.
@@ -105,11 +107,6 @@ docker run -d \
   -p 5432:5432 \
   postgres:16-alpine
 
-# MongoDB
-docker run -d \
-  --name deadlink-mongo \
-  -p 27017:27017 \
-  mongo:7
 ```
 
 Or with Docker Compose:
@@ -126,17 +123,8 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
 volumes:
   pg_data:
-  mongo_data:
 ```
 
 ```bash
@@ -193,8 +181,8 @@ Auth is handled by [Clerk](https://clerk.com). Users sign in via Clerk and all p
 
 ---
 
-## Why Two Databases?
+## Storage
 
-PostgreSQL (via Drizzle) stores structured relational data — users, placeholder links, mappings, and metadata.
+PostgreSQL (via Drizzle) stores link metadata, ownership, mappings, and status.
 
-MongoDB (via Mongoose) stores actual submission content, which can be flexible and unstructured depending on the type of submission being tracked.
+Cloudinary stores uploaded files. The database keeps each uploaded file's secure URL and public ID so it can be served and deleted later.

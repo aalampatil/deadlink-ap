@@ -11,12 +11,32 @@ import {
 import { getAuth } from "@clerk/express";
 import { isProduction } from "../../index.js";
 import { linksTable } from "../../db/schema.js";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { env } from "../../env.js";
 import {
   uploadOnCloudinary,
   deleteFromCloudinary,
 } from "../../utils/cloudinary.js";
+
+const slugify = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+
+const createSlug = (displayTitle: string) => {
+  const baseSlug = slugify(displayTitle);
+  return baseSlug ? `${baseSlug}-${nanoid(6)}` : nanoid(12);
+};
+
+const assertLinkIsActive = (linkValidity: Date | string | null) => {
+  if (!linkValidity) return;
+  if (new Date(linkValidity).getTime() < Date.now()) {
+    throw ApiError.gone("Link has expired");
+  }
+};
 
 const createLink = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -26,12 +46,7 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
     const { displayTitle } = req.body || {};
     const cleanTitle =
       typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "";
-    let slug;
-    if (!displayTitle) {
-      slug = nanoid(12);
-    } else {
-      slug = cleanTitle;
-    }
+    const slug = createSlug(cleanTitle);
 
     const publicBaseUrl = isProduction ? env.CLIENT : env.FRONTEND;
 
@@ -48,7 +63,6 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
         manageUrl,
       })
       .returning();
-    console.log(link);
 
     if (!link) throw ApiError.internalError("failed to create db");
 
@@ -73,6 +87,7 @@ const publicLink = async (req: Request, res: Response) => {
     .where(eq(linksTable.slug, slug as string));
 
   if (!link) throw ApiError.notfound();
+  assertLinkIsActive(link.linkValidity);
 
   res.json({
     slug: link.slug,
@@ -98,6 +113,7 @@ const manageLink = async (req: Request, res: Response) => {
     .where(eq(linksTable.slug, slug));
 
   if (!link) throw ApiError.notfound();
+  assertLinkIsActive(link.linkValidity);
   if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
   res.json({
@@ -116,9 +132,7 @@ const mapLink = async (req: Request, res: Response) => {
   if (!userId) throw ApiError.unauthorised();
 
   const { slug } = req.params;
-  console.log(req.body);
   const { targetUrl, contentType } = req.body || {};
-  console.log(contentType);
 
   if (contentType !== "Post" && contentType !== "File") {
     throw ApiError.badRequest("contentType must be 'Post' or 'File'");
@@ -130,6 +144,7 @@ const mapLink = async (req: Request, res: Response) => {
     .where(eq(linksTable.slug, slug as string));
 
   if (!link) throw ApiError.notfound();
+  assertLinkIsActive(link.linkValidity);
   if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
   //post
@@ -153,9 +168,9 @@ const mapLink = async (req: Request, res: Response) => {
       .returning();
 
     if (!link) throw ApiError.notfound();
-    if (link.ownerId !== userId) throw ApiError.forbidden;
+    if (link.ownerId !== userId) throw ApiError.forbidden("Not your link");
 
-    res.json({
+    return res.json({
       slug: link.slug,
       status: link.status, // auto from DB
       mappedUrl: link.mappedUrl,
@@ -199,13 +214,15 @@ const mapLink = async (req: Request, res: Response) => {
 
     if (!link) throw ApiError.internalError("failed to map link");
 
-    res.json({
+    return res.json({
       slug: link.slug,
       status: link.status, // auto from DB
       mappedUrl: link.mappedUrl,
       mappedOn: link.mappedOn,
     });
   }
+
+  throw ApiError.badRequest("Unsupported content type");
 };
 
 //#endregion
@@ -217,7 +234,9 @@ const getAllLinks = async (req: Request, res: Response) => {
   const links = await db
     .select()
     .from(linksTable)
-    .where(eq(linksTable.ownerId, userId));
+    .where(eq(linksTable.ownerId, userId))
+    .orderBy(desc(linksTable.createdAt))
+    .limit(100);
 
   res.status(200).json({
     success: true,

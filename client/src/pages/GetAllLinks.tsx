@@ -40,6 +40,7 @@ function GetAllLinks() {
 
   const handleDelete = async (slug?: string | null) => {
     if (!slug) return
+    if (!window.confirm("Delete this link? This action cannot be undone.")) return
     try {
       // await deleteLink(id)  <-- wire up your delete action here
       await axiosApi.delete(`/link/delete/${slug}`)
@@ -73,7 +74,7 @@ function GetAllLinks() {
           <div className="grid grid-cols-1 sm:grid-row-2 gap-5">
             {allLinks?.map((link) => (
               <div
-                key={link._id}
+                key={link.id}
                 className="bg-white border-2 border-border p-5 flex flex-col gap-3 hover:-translate-x-2 hover:-translate-y-2 hover:shadow-shadow transition-all"
               >
                 {/* Title + Content Type + Status dot */}
@@ -136,17 +137,21 @@ function GetAllLinks() {
                 {/* Actions */}
                 <div className="flex flex-row flex-wrap gap-2 sm:gap-2">
                   <Button
-                    onClick={() => copyToClipboard(link.mappedUrl)}
-                    disabled={!link.mappedUrl}
+                    onClick={() =>
+                      copyToClipboard(link.publicUrl || `${window.location.origin}/l/${link.slug}`)
+                    }
+                    disabled={!link.publicUrl && !link.slug}
                     className="flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors"
                   >
                     Copy Public URL ↗
                   </Button>
 
                   <Button
-                    onClick={() => link.mappedUrl && window.open(link.mappedUrl, "_blank")}
-                    disabled={!link.mappedUrl}
-                    className={`flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors ${!link.mappedUrl ? "cursor-none" : "cursor-pointer"}`}
+                    onClick={() =>
+                      window.open(link.publicUrl || `${window.location.origin}/l/${link.slug}`, "_blank")
+                    }
+                    disabled={!link.publicUrl && !link.slug}
+                    className={`flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors ${!link.publicUrl && !link.slug ? "cursor-none" : "cursor-pointer"}`}
                   >
                     Visit Public Url ↗
                   </Button>

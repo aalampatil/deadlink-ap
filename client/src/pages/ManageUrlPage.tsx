@@ -8,7 +8,6 @@ import { useManageLinkStore } from "@/store/LinkStore";
 const ManageUrlPage = () => {
 
     const { data, fetchLink, mapUrl, loading, fetching, targetUrl, setTargetUrl, file, setFile, contentType, setContentType } = useManageLinkStore()
-    // add file state , file -
 
     const navigate = useNavigate();
     const { slug } = useParams();
@@ -40,9 +39,10 @@ const ManageUrlPage = () => {
 
 
 
-        await mapUrl(slug)
-        // todo - send content_type and file
-        toast.success("URL mapped successfully!");
+        const mapped = await mapUrl(slug)
+        if (mapped) {
+            toast.success("URL mapped successfully!");
+        }
 
     };
 
@@ -118,7 +118,15 @@ const ManageUrlPage = () => {
                 <div className="border-4 border-border shadow-shadow bg-main p-4 flex flex-col gap-4">
                     <h2 className="text-xl font-heading">Map Final URL</h2>
 
-                    <select name="" id="" onChange={(e) => setContentType(e.target.value)} className="border-2 border-border p-3 shadow-shadow bg-secondary-background">
+                    <select
+                        value={contentType ?? ""}
+                        onChange={(e) => {
+                            setContentType(e.target.value)
+                            setFile(null)
+                            setTargetUrl("")
+                        }}
+                        className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
+                    >
                         <option value="">Select Content Type</option>
                         <option value="Post">Post</option>
                         <option value="File">File</option>
@@ -132,7 +140,7 @@ const ManageUrlPage = () => {
                             placeholder="https://your-final-work.com"
                             className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
                         />
-                    ) : (
+                    ) : contentType === "File" ? (
                         <input
                             type="file"
                             onChange={(e) => {
@@ -141,7 +149,7 @@ const ManageUrlPage = () => {
                             }}
                             className="border-2 border-border p-3 shadow-shadow bg-secondary-background"
                         />
-                    )}
+                    ) : null}
 
                     <Button
                         onClick={handleMap}

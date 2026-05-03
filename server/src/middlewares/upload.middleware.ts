@@ -1,18 +1,13 @@
 import multer, { type StorageEngine } from "multer";
 import { type Request } from "express";
+import fs from "fs";
+import path from "path";
+import { FILE_MIME_TO_SUB_TYPE } from "../utils/utils.js";
 
-// Allowed MIME types
-const allowedMimeTypes = [
-  // Images
-  "image/jpeg",
-  "image/png",
-  "image/webp",
+const uploadDir = path.join(process.cwd(), "public", "temp");
+fs.mkdirSync(uploadDir, { recursive: true });
 
-  // Videos
-  "video/mp4",
-  "video/mpeg",
-  "video/quicktime", // .mov
-];
+const allowedMimeTypes = Object.keys(FILE_MIME_TO_SUB_TYPE);
 
 const storage: StorageEngine = multer.diskStorage({
   destination: (
@@ -20,7 +15,7 @@ const storage: StorageEngine = multer.diskStorage({
     file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void,
   ) => {
-    cb(null, "./public/temp");
+    cb(null, uploadDir);
   },
 
   filename: (
@@ -36,7 +31,11 @@ const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type. Only images and videos are allowed."));
+    cb(
+      new Error(
+        `Invalid file type. Allowed: ${allowedMimeTypes.join(", ")}`,
+      ),
+    );
   }
 };
 
@@ -49,5 +48,3 @@ export const upload = multer({
   fileFilter,
   limits,
 });
-
-// todo - add file filter and validation

@@ -33,11 +33,7 @@ const router = createBrowserRouter([
       },
       {
         path: "l/:slug",
-        element: (
-          <ProtectedRoute>
-            <PublicUrl />
-          </ProtectedRoute>
-        ),
+        element: <PublicUrl />,
       },
       {
         path: "manage/:slug",
@@ -45,7 +41,11 @@ const router = createBrowserRouter([
       },
       {
         path: "get-all",
-        element: <GetAllLinks />,
+        element: (
+          <ProtectedRoute>
+            <GetAllLinks />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
