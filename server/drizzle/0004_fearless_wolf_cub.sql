@@ -1,0 +1,1 @@
+ALTER TABLE "social_cards" ADD COLUMN "background_image_url" varchar(2048) DEFAULT '' NOT NULL;

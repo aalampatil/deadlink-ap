@@ -16,6 +16,10 @@ A deadline submission management service. Users get a placeholder link they can 
 
 No broken links. No "coming soon" pages. The placeholder link always works.
 
+Users can also create a public social card at `/c/:slug` for profile links such
+as GitHub, LinkedIn, X, portfolio, or any other public URL. The card editor is
+available after sign-in at `/card`.
+
 ---
 
 ## Tech Stack

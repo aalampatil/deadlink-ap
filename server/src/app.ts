@@ -1,5 +1,6 @@
 import express from "express";
 import linkRouter from "./modules/link/link.routes.js";
+import cardRouter from "./modules/card/card.routes.js";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
@@ -51,6 +52,7 @@ function createApp() {
     res.send("OK 200, check");
   });
   app.use("/api/link", linkRouter);
+  app.use("/api/card", cardRouter);
   // app.use("/api/user", userRouter);
 
   app.use((_, res) => {

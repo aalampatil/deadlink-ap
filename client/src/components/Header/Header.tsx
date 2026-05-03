@@ -1,40 +1,65 @@
 import { useNavigate } from "react-router-dom";
 import { Show, UserButton, SignInButton } from '@clerk/react'
-import { Link } from 'lucide-react';
+import { IdCard, Link } from 'lucide-react';
 
 
 const Header = () => {
 
   const navigate = useNavigate()
   return (
-    <header className="sm:flex-row sm:justify-between sm:h-20 w-full flex flex-col gap-3 items-center justify-center px-4 py-4 border-4 border-border shadow-shadow bg-secondary-background">
+    <header className="w-full border-4 border-border bg-secondary-background px-4 py-4 shadow-shadow">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
+        <div className="flex flex-col items-center gap-2 sm:flex-row">
+          <h1 onClick={() => navigate("/")} className="cursor-pointer border-2 border-border bg-main px-3 py-2 text-lg font-heading shadow-shadow sm:text-2xl">
+            deadlink-ap
+          </h1>
 
-      <h1 onClick={() => navigate("/")} className=" cursor-pointer text-xs sm:text-2xl px-3 py-2 font-heading border-2 border-border shadow-shadow bg-main">
-        deadlink-ap
-      </h1>
-
-      <p className=" text-sm sm:text-lg md:text-xl text-center px-3 py-2 border-2 border-border shadow-shadow bg-main">
-        not all the time, but might be that one moment
-      </p>
-      <Show when="signed-in">
-        <UserButton>
-          <UserButton.MenuItems>
-            <UserButton.Action
-              label="Manage Active Links"
-              labelIcon={<Link size={15} />}
-              onClick={() => navigate("/get-all")}
-            />
-          </UserButton.MenuItems>
-        </UserButton>
-
-
-      </Show>
-      <Show when="signed-out">
-        <div className="border-2 border-border shadow-shadow bg-main">
-          <SignInButton />
+          <p className="border-2 border-border bg-main px-3 py-2 text-center text-sm shadow-shadow sm:text-base">
+            placeholder links and profile cards
+          </p>
         </div>
 
-      </Show>
+        <Show when="signed-in">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate("/get-all")}
+              className="flex h-10 items-center gap-2 border-2 border-border bg-main px-3 font-heading shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
+            >
+              <Link size={16} />
+              Links
+            </button>
+            <button
+              onClick={() => navigate("/card")}
+              className="flex h-10 items-center gap-2 border-2 border-border bg-main px-3 font-heading shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
+            >
+              <IdCard size={16} />
+              Card
+            </button>
+
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Action
+                  label="Manage Active Links"
+                  labelIcon={<Link size={15} />}
+                  onClick={() => navigate("/get-all")}
+                />
+                <UserButton.Action
+                  label="Social Card"
+                  labelIcon={<IdCard size={15} />}
+                  onClick={() => navigate("/card")}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </div>
+        </Show>
+
+        <Show when="signed-out">
+          <div className="border-2 border-border bg-main px-3 py-2 font-heading shadow-shadow">
+            <SignInButton />
+          </div>
+        </Show>
+      </div>
+
     </header>
   );
 };

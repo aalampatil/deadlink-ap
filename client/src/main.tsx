@@ -12,6 +12,8 @@ import ProtectedRoute from "./config/Protected";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import GetAllLinks from "./pages/GetAllLinks";
+import CardEditorPage from "./pages/CardEditorPage";
+import PublicCardPage from "./pages/PublicCardPage";
 
 const router = createBrowserRouter([
   {
@@ -47,7 +49,19 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "card",
+        element: (
+          <ProtectedRoute>
+            <CardEditorPage />
+          </ProtectedRoute>
+        ),
+      },
     ],
+  },
+  {
+    path: "c/:slug",
+    element: <PublicCardPage />,
   },
   {
     path: "sign-in",
