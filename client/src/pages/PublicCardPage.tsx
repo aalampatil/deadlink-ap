@@ -13,7 +13,7 @@ import {
 import { usePublicCardStore } from "@/store/CardStore";
 
 const defaultBioColor = "#111111";
-const defaultCardBorderColor = "#000000";
+const defaultDisplayNameColor = "#000000";
 const pageOverlay =
   "linear-gradient(135deg, rgba(231,247,207,0.72), rgba(0,153,255,0.16), rgba(250,204,0,0.24))";
 
@@ -61,14 +61,10 @@ const PublicCardPage = () => {
           : { backgroundImage: pageOverlay }
       }
     >
-      <main
-        className="mx-auto max-w-xl border-4 border-border bg-main p-3 shadow-shadow"
-        style={{ borderColor: card.cardBorderColor || defaultCardBorderColor }}
-      >
+      <main className="mx-auto max-w-xl border-4 border-border bg-main p-3 shadow-shadow">
         <div
           className="overflow-hidden border-4 border-border bg-secondary-background text-left"
           style={{
-            borderColor: card.cardBorderColor || defaultCardBorderColor,
             ...(card.backgroundImageUrl.trim()
               ? {
                   backgroundImage: `url("${card.backgroundImageUrl.trim()}")`,
@@ -101,7 +97,12 @@ const PublicCardPage = () => {
             </div>
 
             <div>
-              <h1 className="break-words text-4xl font-heading sm:text-5xl">
+              <h1
+                className="break-words text-4xl font-heading sm:text-5xl"
+                style={{
+                  color: card.displayNameColor || defaultDisplayNameColor,
+                }}
+              >
                 {card.displayName}
               </h1>
               {card.bio && (

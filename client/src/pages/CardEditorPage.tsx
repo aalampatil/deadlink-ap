@@ -75,16 +75,16 @@ const emptyProject = (): SocialCardLink => ({
 });
 
 const defaultBioColor = "#111111";
-const defaultCardBorderColor = "#000000";
+const defaultDisplayNameColor = "#000000";
 const accentPresets = ["#facc00", "#00d696", "#7a83ff", "#ff4d50", "#0099ff"];
-const bioColorPresets = [defaultBioColor, "#ffffff", "#facc00", "#00d696", "#0099ff"];
-const cardBorderColorPresets = [
-  defaultCardBorderColor,
+const displayNameColorPresets = [
+  defaultDisplayNameColor,
   "#ffffff",
   "#facc00",
   "#00d696",
   "#0099ff",
 ];
+const bioColorPresets = [defaultBioColor, "#ffffff", "#facc00", "#00d696", "#0099ff"];
 const maxProjectCount = 5;
 
 const isLocalOrigin = (origin: string) =>
@@ -94,10 +94,12 @@ const CardEditorPage = () => {
   const { card, loading, saving, fetchMyCard, saveCard } = useCardEditorStore();
   const { isLoaded, isSignedIn } = useAuth();
   const [displayName, setDisplayName] = useState("");
+  const [displayNameColor, setDisplayNameColor] = useState(
+    defaultDisplayNameColor,
+  );
   const [slug, setSlug] = useState("");
   const [bio, setBio] = useState("");
   const [bioColor, setBioColor] = useState(defaultBioColor);
-  const [cardBorderColor, setCardBorderColor] = useState(defaultCardBorderColor);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
   const [accentColor, setAccentColor] = useState("#facc00");
@@ -126,10 +128,12 @@ const CardEditorPage = () => {
       );
 
       setDisplayName(nextCard.displayName);
+      setDisplayNameColor(
+        nextCard.displayNameColor || defaultDisplayNameColor,
+      );
       setSlug(nextCard.slug);
       setBio(nextCard.bio.toUpperCase());
       setBioColor(nextCard.bioColor || defaultBioColor);
-      setCardBorderColor(nextCard.cardBorderColor || defaultCardBorderColor);
       setAvatarUrl(nextCard.avatarUrl);
       setBackgroundImageUrl(nextCard.backgroundImageUrl);
       setAccentColor(nextCard.accentColor);
@@ -232,10 +236,10 @@ const CardEditorPage = () => {
 
     const saved = await saveCard({
       displayName,
+      displayNameColor,
       slug,
       bio: bio.toUpperCase(),
       bioColor,
-      cardBorderColor,
       avatarUrl,
       backgroundImageUrl,
       accentColor,
@@ -397,6 +401,33 @@ const CardEditorPage = () => {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2 font-heading">
                     <Palette size={18} />
+                    Name color
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {displayNameColorPresets.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Use ${color}`}
+                        onClick={() => setDisplayNameColor(color)}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
+                          displayNameColor === color ? "-translate-x-1 -translate-y-1" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={displayNameColor || defaultDisplayNameColor}
+                      onChange={(e) => setDisplayNameColor(e.target.value)}
+                      className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 font-heading">
+                    <Palette size={18} />
                     Bio color
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
@@ -416,33 +447,6 @@ const CardEditorPage = () => {
                       type="color"
                       value={bioColor || defaultBioColor}
                       onChange={(e) => setBioColor(e.target.value)}
-                      className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 font-heading">
-                    <Palette size={18} />
-                    Card border
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {cardBorderColorPresets.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        aria-label={`Use ${color}`}
-                        onClick={() => setCardBorderColor(color)}
-                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
-                          cardBorderColor === color ? "-translate-x-1 -translate-y-1" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                    <input
-                      type="color"
-                      value={cardBorderColor || defaultCardBorderColor}
-                      onChange={(e) => setCardBorderColor(e.target.value)}
                       className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
                     />
                   </div>
@@ -564,10 +568,7 @@ const CardEditorPage = () => {
         </section>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div
-            className="border-4 border-border bg-main p-3 shadow-shadow"
-            style={{ borderColor: cardBorderColor || defaultCardBorderColor }}
-          >
+          <div className="border-4 border-border bg-main p-3 shadow-shadow">
             <div className="mb-3 flex items-center justify-between border-2 border-border bg-secondary-background px-3 py-2 font-heading">
               <span>Live Preview</span>
               <span className="text-xs">/c/{slug || "your-slug"}</span>
@@ -576,7 +577,6 @@ const CardEditorPage = () => {
             <div
               className="relative mx-auto flex min-h-[660px] max-w-sm flex-col overflow-hidden border-4 border-border bg-secondary-background text-left"
               style={{
-                borderColor: cardBorderColor || defaultCardBorderColor,
                 ...(backgroundImageUrl.trim()
                   ? {
                       backgroundImage: `url("${backgroundImageUrl.trim()}")`,
@@ -603,7 +603,10 @@ const CardEditorPage = () => {
                 )}
 
                 <div>
-                  <h2 className="break-words text-3xl font-heading">
+                  <h2
+                    className="break-words text-3xl font-heading"
+                    style={{ color: displayNameColor || defaultDisplayNameColor }}
+                  >
                     {displayName || "Your Name"}
                   </h2>
                   <p

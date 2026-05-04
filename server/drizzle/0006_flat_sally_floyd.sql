@@ -1,0 +1,1 @@
+ALTER TABLE "social_cards" ADD COLUMN "display_name_color" varchar(20) DEFAULT '#000000' NOT NULL;

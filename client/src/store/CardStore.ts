@@ -22,9 +22,9 @@ export type SocialCard = {
   id: string;
   slug: string;
   displayName: string;
+  displayNameColor?: string;
   bio: string;
   bioColor?: string;
-  cardBorderColor?: string;
   avatarUrl: string;
   backgroundImageUrl: string;
   accentColor: string;
@@ -35,8 +35,8 @@ export type SocialCard = {
 };
 
 type SocialCardResponse = SocialCard & {
+  display_name_color?: string;
   bio_color?: string;
-  card_border_color?: string;
 };
 
 const normalizeCard = (card: SocialCardResponse | null): SocialCard | null => {
@@ -44,10 +44,10 @@ const normalizeCard = (card: SocialCardResponse | null): SocialCard | null => {
 
   return {
     ...card,
+    displayNameColor:
+      card.displayNameColor ?? card.display_name_color ?? "#000000",
     bio: card.bio.toUpperCase(),
     bioColor: card.bioColor ?? card.bio_color ?? "#111111",
-    cardBorderColor:
-      card.cardBorderColor ?? card.card_border_color ?? "#000000",
   };
 };
 

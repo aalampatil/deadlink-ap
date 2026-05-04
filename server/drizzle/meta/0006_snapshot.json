@@ -1,5 +1,5 @@
 {
-  "id": "dd3997f0-fc1f-4fd4-b3b9-d916e0a6b7ee",
+  "id": "d2e6c543-4648-4850-9ecb-93d879b94317",
   "prevId": "ca8c8078-8f8b-48ef-95fe-2d2c82cdd9a3",
   "version": "7",
   "dialect": "postgresql",
@@ -160,6 +160,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "display_name_color": {
+          "name": "display_name_color",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'#000000'"
+        },
         "bio": {
           "name": "bio",
           "type": "varchar(280)",
@@ -173,13 +180,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'#111111'"
-        },
-        "card_border_color": {
-          "name": "card_border_color",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'#000000'"
         },
         "avatar_url": {
           "name": "avatar_url",

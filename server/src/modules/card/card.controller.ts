@@ -34,6 +34,12 @@ const cardLinkSchema = z.object({
 const cardPayloadSchema = z.object({
   slug: z.string().trim().min(3).max(80).optional(),
   displayName: z.string().trim().min(1).max(120),
+  displayNameColor: z
+    .string()
+    .trim()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional()
+    .default("#000000"),
   bio: z.string().trim().max(280).optional().default(""),
   bioColor: z
     .string()
@@ -41,12 +47,6 @@ const cardPayloadSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional()
     .default("#111111"),
-  cardBorderColor: z
-    .string()
-    .trim()
-    .regex(/^#[0-9a-fA-F]{6}$/)
-    .optional()
-    .default("#000000"),
   avatarUrl: z
     .string()
     .trim()
@@ -79,9 +79,9 @@ const serializeCard = (card: typeof socialCardsTable.$inferSelect) => ({
   id: card.id,
   slug: card.slug,
   displayName: card.displayName,
+  displayNameColor: card.displayNameColor,
   bio: card.bio.toUpperCase(),
   bioColor: card.bioColor,
-  cardBorderColor: card.cardBorderColor,
   avatarUrl: card.avatarUrl,
   backgroundImageUrl: card.backgroundImageUrl,
   accentColor: card.accentColor,
@@ -138,9 +138,9 @@ const upsertMyCard = async (req: Request, res: Response) => {
     ownerId: userId,
     slug: cleanSlug,
     displayName: parsed.data.displayName,
+    displayNameColor: parsed.data.displayNameColor,
     bio: parsed.data.bio.toUpperCase(),
     bioColor: parsed.data.bioColor,
-    cardBorderColor: parsed.data.cardBorderColor,
     avatarUrl: parsed.data.avatarUrl,
     backgroundImageUrl: parsed.data.backgroundImageUrl,
     accentColor: parsed.data.accentColor,
