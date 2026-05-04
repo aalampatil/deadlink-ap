@@ -95,7 +95,10 @@ const PublicCardPage = () => {
                 </div>
               )}
 
-              <p className="w-fit border-2 border-border bg-main px-3 py-2 text-xs font-heading shadow-shadow">
+              <p
+                className="w-fit border-2 border-border px-3 py-2 text-xs font-heading shadow-shadow"
+                style={{ backgroundColor: card.accentColor }}
+              >
                 deadlink card
               </p>
             </div>
@@ -196,7 +199,10 @@ const PublicCardPage = () => {
               </section>
             ) : null}
 
-            <div className="flex items-center gap-2 border-2 border-border bg-main px-3 py-2 text-xs font-heading shadow-shadow">
+            <div
+              className="flex items-center gap-2 border-2 border-border px-3 py-2 text-xs font-heading shadow-shadow"
+              style={{ backgroundColor: card.accentColor }}
+            >
               <BriefcaseBusiness size={15} />
               /c/{card.slug}
             </div>

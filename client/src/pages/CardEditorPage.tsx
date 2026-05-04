@@ -681,7 +681,10 @@ const CardEditorPage = () => {
                   )}
                 </div>
 
-                <div className="mt-auto flex items-center gap-2 border-2 border-border bg-main px-3 py-2 text-xs font-heading shadow-shadow">
+                <div
+                  className="mt-auto flex items-center gap-2 border-2 border-border px-3 py-2 text-xs font-heading shadow-shadow"
+                  style={{ backgroundColor: accentColor }}
+                >
                   <BriefcaseBusiness size={15} />
                   deadlink card
                 </div>

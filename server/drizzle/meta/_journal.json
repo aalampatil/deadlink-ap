@@ -50,6 +50,13 @@
       "when": 1777885063737,
       "tag": "0006_flat_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777886200000,
+      "tag": "0007_sync_card_text_colors",
+      "breakpoints": true
     }
   ]
 }
