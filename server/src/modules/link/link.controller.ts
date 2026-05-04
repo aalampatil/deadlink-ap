@@ -48,7 +48,7 @@ const createLink = async (req: Request, res: Response, next: NextFunction) => {
       typeof displayTitle === "string" ? displayTitle.trim().slice(0, 120) : "";
     const slug = createSlug(cleanTitle);
 
-    const publicBaseUrl = isProduction ? env.CLIENT : env.FRONTEND;
+    const publicBaseUrl = env.CLIENT;
 
     const publicUrl = `${publicBaseUrl}/l/${slug}`;
     const manageUrl = `${publicBaseUrl}/manage/${encodeURIComponent(slug)}`;
