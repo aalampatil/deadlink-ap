@@ -26,6 +26,9 @@ const cardLinkSchema = z.object({
       const protocol = new URL(value).protocol;
       return protocol === "http:" || protocol === "https:";
     }, "Only http(s) URLs are allowed"),
+  type: z.enum(["social", "project"]).optional().default("social"),
+  platform: z.string().trim().max(32).optional().default("custom"),
+  description: z.string().trim().max(140).optional().default(""),
 });
 
 const cardPayloadSchema = z.object({

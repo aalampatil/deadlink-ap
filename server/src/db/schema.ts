@@ -43,6 +43,9 @@ export const linksTable = pgTable("links", {
 export type SocialCardLink = {
   label: string;
   url: string;
+  type?: "social" | "project";
+  platform?: string;
+  description?: string;
 };
 
 export const socialCardsTable = pgTable("social_cards", {
