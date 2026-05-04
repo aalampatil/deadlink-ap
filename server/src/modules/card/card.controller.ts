@@ -67,13 +67,7 @@ const cardPayloadSchema = z.object({
     .regex(/^#[0-9a-fA-F]{6}$/)
     .optional()
     .default("#111111"),
-  avatarUrl: z
-    .string()
-    .trim()
-    .url()
-    .optional()
-    .or(z.literal(""))
-    .default(""),
+  avatarUrl: z.string().trim().url().optional().or(z.literal("")).default(""),
   backgroundImageUrl: z
     .string()
     .trim()
@@ -91,7 +85,7 @@ const cardPayloadSchema = z.object({
 });
 
 const toPublicUrl = (slug: string) => {
-  const publicBaseUrl = isProduction ? env.CLIENT : env.FRONTEND;
+  const publicBaseUrl = env.CLIENT;
   return `${publicBaseUrl}/c/${slug}`;
 };
 
@@ -129,7 +123,9 @@ const upsertMyCard = async (req: Request, res: Response) => {
 
   const parsed = cardPayloadSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw ApiError.badRequest(parsed.error.issues[0]?.message ?? "Invalid card");
+    throw ApiError.badRequest(
+      parsed.error.issues[0]?.message ?? "Invalid card",
+    );
   }
 
   const cleanSlug = slugify(parsed.data.slug || parsed.data.displayName);
@@ -175,10 +171,7 @@ const upsertMyCard = async (req: Request, res: Response) => {
         .set(values)
         .where(eq(socialCardsTable.ownerId, userId))
         .returning()
-    : await db
-        .insert(socialCardsTable)
-        .values(values)
-        .returning();
+    : await db.insert(socialCardsTable).values(values).returning();
 
   if (!card) throw ApiError.internalError("Failed to save card");
 

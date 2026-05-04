@@ -63,8 +63,10 @@ const socialPresets: SocialPreset[] = [
     key: "email",
     label: "Email",
     placeholder: "https://mail.google.com/mail/?view=cm&to=you@example.com",
+
   },
 ];
+
 
 const emptyProject = (): SocialCardLink => ({
   label: "",
@@ -388,9 +390,8 @@ const CardEditorPage = () => {
                         type="button"
                         aria-label={`Use ${color}`}
                         onClick={() => setAccentColor(color)}
-                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
-                          accentColor === color ? "-translate-x-1 -translate-y-1" : ""
-                        }`}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${accentColor === color ? "-translate-x-1 -translate-y-1" : ""
+                          }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -415,9 +416,8 @@ const CardEditorPage = () => {
                         type="button"
                         aria-label={`Use ${color}`}
                         onClick={() => setDisplayNameColor(color)}
-                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
-                          displayNameColor === color ? "-translate-x-1 -translate-y-1" : ""
-                        }`}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${displayNameColor === color ? "-translate-x-1 -translate-y-1" : ""
+                          }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -442,9 +442,8 @@ const CardEditorPage = () => {
                         type="button"
                         aria-label={`Use ${color}`}
                         onClick={() => setBioColor(color)}
-                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
-                          bioColor === color ? "-translate-x-1 -translate-y-1" : ""
-                        }`}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${bioColor === color ? "-translate-x-1 -translate-y-1" : ""
+                          }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -584,10 +583,10 @@ const CardEditorPage = () => {
               style={{
                 ...(backgroundImageUrl.trim()
                   ? {
-                      backgroundImage: `url("${backgroundImageUrl.trim()}")`,
-                      backgroundPosition: "center",
-                      backgroundSize: "cover",
-                    }
+                    backgroundImage: `url("${backgroundImageUrl.trim()}")`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                  }
                   : {}),
               }}
             >
