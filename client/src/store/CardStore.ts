@@ -13,6 +13,9 @@ type AxiosErrorResponse = {
 export type SocialCardLink = {
   label: string;
   url: string;
+  type?: "social" | "project";
+  platform?: string;
+  description?: string;
 };
 
 export type SocialCard = {

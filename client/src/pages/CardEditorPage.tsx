@@ -1,69 +1,213 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, Eye, Palette, Plus, Save, Trash2 } from "lucide-react";
+import { useAuth } from "@clerk/react";
+import {
+  ArrowUpRight,
+  BriefcaseBusiness,
+  Copy,
+  Eye,
+  Palette,
+  Plus,
+  Save,
+  Sparkles,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SocialBrandLogo } from "@/components/SocialBrandLogo";
+import { type SocialPlatform } from "@/components/socialPlatforms";
 import {
   type SocialCardLink,
   useCardEditorStore,
 } from "@/store/CardStore";
 
-const emptyLink = (): SocialCardLink => ({ label: "", url: "" });
+type SocialPreset = {
+  key: SocialPlatform;
+  label: string;
+  placeholder: string;
+};
+
+const socialPresets: SocialPreset[] = [
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    placeholder: "https://linkedin.com/in/username",
+  },
+  {
+    key: "x",
+    label: "X",
+    placeholder: "https://x.com/username",
+  },
+  {
+    key: "github",
+    label: "GitHub",
+    placeholder: "https://github.com/username",
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    placeholder: "https://youtube.com/@username",
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    placeholder: "https://instagram.com/username",
+  },
+  {
+    key: "portfolio",
+    label: "Portfolio",
+    placeholder: "https://your-site.com",
+  },
+  {
+    key: "email",
+    label: "Email",
+    placeholder: "https://mail.google.com/mail/?view=cm&to=you@example.com",
+  },
+];
+
+const emptyProject = (): SocialCardLink => ({
+  label: "",
+  url: "",
+  description: "",
+  type: "project",
+  platform: "custom",
+});
 
 const accentPresets = ["#facc00", "#00d696", "#7a83ff", "#ff4d50", "#0099ff"];
 const backgroundOverlay =
-  "linear-gradient(rgba(255,255,255,0.28), rgba(255,255,255,0.42))";
+  "linear-gradient(145deg, rgba(255,255,255,0.84), rgba(255,255,255,0.38))";
 
 const CardEditorPage = () => {
   const { card, loading, saving, fetchMyCard, saveCard } = useCardEditorStore();
+  const { isLoaded, isSignedIn } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [slug, setSlug] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
   const [accentColor, setAccentColor] = useState("#facc00");
-  const [links, setLinks] = useState<SocialCardLink[]>([emptyLink()]);
+  const [socialLinks, setSocialLinks] = useState<SocialCardLink[]>(
+    socialPresets.map((preset) => ({
+      label: preset.label,
+      url: "",
+      type: "social",
+      platform: preset.key,
+    })),
+  );
+  const [projects, setProjects] = useState<SocialCardLink[]>([emptyProject()]);
 
   useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+
     const loadCard = async () => {
       const nextCard = await fetchMyCard();
       if (!nextCard) return;
+
+      const savedSocials = nextCard.links.filter(
+        (link) => link.type !== "project",
+      );
+      const savedProjects = nextCard.links.filter(
+        (link) => link.type === "project",
+      );
+
       setDisplayName(nextCard.displayName);
       setSlug(nextCard.slug);
       setBio(nextCard.bio);
       setAvatarUrl(nextCard.avatarUrl);
       setBackgroundImageUrl(nextCard.backgroundImageUrl);
       setAccentColor(nextCard.accentColor);
-      setLinks(nextCard.links.length ? nextCard.links : [emptyLink()]);
+      setSocialLinks(
+        socialPresets.map((preset) => {
+          const saved = savedSocials.find(
+            (link) =>
+              link.platform === preset.key ||
+              link.label.toLowerCase() === preset.label.toLowerCase(),
+          );
+
+          return {
+            label: preset.label,
+            url: saved?.url ?? "",
+            type: "social",
+            platform: preset.key,
+          };
+        }),
+      );
+      setProjects(savedProjects.length ? savedProjects.slice(0, 3) : [emptyProject()]);
     };
 
     void loadCard();
-  }, [fetchMyCard]);
+  }, [fetchMyCard, isLoaded, isSignedIn]);
 
-  const previewLinks = useMemo(
-    () => links.filter((link) => link.label.trim() && link.url.trim()),
-    [links],
+  const previewSocials = useMemo(
+    () => socialLinks.filter((link) => link.url.trim()),
+    [socialLinks],
   );
 
-  const updateLink = (
-    index: number,
-    field: keyof SocialCardLink,
-    value: string,
-  ) => {
-    setLinks((current) =>
-      current.map((link, itemIndex) =>
-        itemIndex === index ? { ...link, [field]: value } : link,
+  const previewProjects = useMemo(
+    () =>
+      projects.filter(
+        (project) =>
+          project.label.trim() ||
+          project.url.trim() ||
+          project.description?.trim(),
+      ),
+    [projects],
+  );
+
+  const updateSocialLink = (platform: SocialPlatform, url: string) => {
+    setSocialLinks((current) =>
+      current.map((link) =>
+        link.platform === platform ? { ...link, url } : link,
       ),
     );
   };
 
-  const removeLink = (index: number) => {
-    setLinks((current) =>
-      current.length === 1 ? [emptyLink()] : current.filter((_, i) => i !== index),
+  const updateProject = (
+    index: number,
+    field: keyof SocialCardLink,
+    value: string,
+  ) => {
+    setProjects((current) =>
+      current.map((project, itemIndex) =>
+        itemIndex === index ? { ...project, [field]: value } : project,
+      ),
+    );
+  };
+
+  const addProject = () => {
+    setProjects((current) =>
+      current.length >= 3 ? current : [...current, emptyProject()],
+    );
+  };
+
+  const removeProject = (index: number) => {
+    setProjects((current) =>
+      current.length === 1
+        ? [emptyProject()]
+        : current.filter((_, i) => i !== index),
     );
   };
 
   const handleSave = async () => {
+    const cleanedSocials = previewSocials.map((link) => ({
+      label: link.label,
+      url: link.url.trim(),
+      type: "social" as const,
+      platform: link.platform,
+      description: "",
+    }));
+
+    const cleanedProjects = previewProjects
+      .filter((project) => project.label.trim() && project.url.trim())
+      .map((project) => ({
+        label: project.label.trim(),
+        url: project.url.trim(),
+        description: project.description?.trim() ?? "",
+        type: "project" as const,
+        platform: "custom",
+      }));
+
     const saved = await saveCard({
       displayName,
       slug,
@@ -71,7 +215,7 @@ const CardEditorPage = () => {
       avatarUrl,
       backgroundImageUrl,
       accentColor,
-      links: previewLinks,
+      links: [...cleanedSocials, ...cleanedProjects],
     });
 
     if (saved) toast.success("Card saved");
@@ -90,13 +234,17 @@ const CardEditorPage = () => {
 
   return (
     <div className="min-h-screen px-4 py-8">
-      <main className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+      <main className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_430px]">
         <section className="border-4 border-border bg-secondary-background shadow-shadow">
           <div className="flex flex-col gap-4 border-b-4 border-border bg-main p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
+              <div className="mb-2 inline-flex items-center gap-2 border-2 border-border bg-secondary-background px-3 py-1 text-xs font-heading shadow-shadow">
+                <Sparkles size={14} />
+                Public profile builder
+              </div>
               <h1 className="text-2xl font-heading sm:text-4xl">Social Card</h1>
               <p className="mt-1 max-w-2xl text-sm sm:text-base">
-                Build one public card for your profile, work, and socials.
+                Build one sharp card for socials, best work, and your public profile.
               </p>
             </div>
 
@@ -155,30 +303,32 @@ const CardEditorPage = () => {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   maxLength={280}
-                  placeholder="Developer, builder, student."
+                  placeholder="Developer, builder, student. I ship useful web tools."
                   className="min-h-24 resize-none border-2 border-border bg-white p-3 font-sans text-sm outline-none shadow-shadow"
                 />
               </label>
 
-              <label className="flex flex-col gap-2 font-heading">
-                Avatar image URL
-                <Input
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="rounded-none border-2 border-border bg-white font-sans shadow-shadow"
-                />
-              </label>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <label className="flex flex-col gap-2 font-heading">
+                  Avatar image URL
+                  <Input
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="rounded-none border-2 border-border bg-white font-sans shadow-shadow"
+                  />
+                </label>
 
-              <label className="flex flex-col gap-2 font-heading">
-                Background image URL
-                <Input
-                  value={backgroundImageUrl}
-                  onChange={(e) => setBackgroundImageUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="rounded-none border-2 border-border bg-white font-sans shadow-shadow"
-                />
-              </label>
+                <label className="flex flex-col gap-2 font-heading">
+                  Background image URL
+                  <Input
+                    value={backgroundImageUrl}
+                    onChange={(e) => setBackgroundImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="rounded-none border-2 border-border bg-white font-sans shadow-shadow"
+                  />
+                </label>
+              </div>
 
               <div className="flex flex-col gap-3 border-2 border-border bg-main p-4 shadow-shadow">
                 <div className="flex items-center gap-2 font-heading">
@@ -192,7 +342,7 @@ const CardEditorPage = () => {
                       type="button"
                       aria-label={`Use ${color}`}
                       onClick={() => setAccentColor(color)}
-                      className={`h-10 w-10 border-2 border-border shadow-shadow ${
+                      className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
                         accentColor === color ? "-translate-x-1 -translate-y-1" : ""
                       }`}
                       style={{ backgroundColor: color }}
@@ -208,15 +358,57 @@ const CardEditorPage = () => {
               </div>
 
               <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-heading">Social Links</h2>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-xl font-heading">Preset Social Links</h2>
+                  <span className="border-2 border-border bg-main px-2 py-1 text-xs font-heading shadow-shadow">
+                    Logo ready
+                  </span>
+                </div>
+
+                <div className="grid gap-3 xl:grid-cols-2">
+                  {socialPresets.map((preset) => (
+                    <label
+                      key={preset.key}
+                      className="grid grid-cols-[44px_1fr] gap-3 border-2 border-border bg-main p-3 shadow-shadow"
+                    >
+                      <span
+                        className="flex h-11 w-11 items-center justify-center border-2 border-border bg-secondary-background shadow-shadow"
+                        title={preset.label}
+                      >
+                        <SocialBrandLogo
+                          platform={preset.key}
+                          label={preset.label}
+                          className="h-6 w-6"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="mb-1 block font-heading text-sm">
+                          {preset.label}
+                        </span>
+                        <Input
+                          value={
+                            socialLinks.find(
+                              (link) => link.platform === preset.key,
+                            )?.url ?? ""
+                          }
+                          onChange={(e) =>
+                            updateSocialLink(preset.key, e.target.value)
+                          }
+                          placeholder={preset.placeholder}
+                          className="rounded-none border-2 border-border bg-white font-sans"
+                        />
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-xl font-heading">Featured Projects</h2>
                   <Button
-                    onClick={() =>
-                      setLinks((current) =>
-                        current.length >= 10 ? current : [...current, emptyLink()],
-                      )
-                    }
-                    disabled={links.length >= 10}
+                    onClick={addProject}
+                    disabled={projects.length >= 3}
                     className="rounded-none border-2 border-border bg-secondary-background shadow-shadow"
                   >
                     <Plus size={16} />
@@ -224,29 +416,44 @@ const CardEditorPage = () => {
                   </Button>
                 </div>
 
-                {links.map((link, index) => (
+                {projects.map((project, index) => (
                   <div
                     key={index}
-                    className="grid gap-2 border-2 border-border bg-main p-3 shadow-shadow sm:grid-cols-[1fr_2fr_auto]"
+                    className="grid gap-3 border-2 border-border bg-main p-3 shadow-shadow"
                   >
-                    <Input
-                      value={link.label}
-                      onChange={(e) => updateLink(index, "label", e.target.value)}
-                      placeholder="Instagram"
-                      className="rounded-none border-2 border-border bg-white"
+                    <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                      <Input
+                        value={project.label}
+                        onChange={(e) =>
+                          updateProject(index, "label", e.target.value)
+                        }
+                        placeholder="Project name"
+                        className="rounded-none border-2 border-border bg-white"
+                      />
+                      <Input
+                        value={project.url}
+                        onChange={(e) =>
+                          updateProject(index, "url", e.target.value)
+                        }
+                        placeholder="https://project-demo.com"
+                        className="rounded-none border-2 border-border bg-white"
+                      />
+                      <Button
+                        onClick={() => removeProject(index)}
+                        className="rounded-none border-2 border-border bg-white text-red-600 hover:bg-red-100"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                    <textarea
+                      value={project.description ?? ""}
+                      onChange={(e) =>
+                        updateProject(index, "description", e.target.value)
+                      }
+                      maxLength={140}
+                      placeholder="One tight line about why this work matters."
+                      className="min-h-20 resize-none border-2 border-border bg-white p-3 text-sm outline-none"
                     />
-                    <Input
-                      value={link.url}
-                      onChange={(e) => updateLink(index, "url", e.target.value)}
-                      placeholder="https://instagram.com/username"
-                      className="rounded-none border-2 border-border bg-white"
-                    />
-                    <Button
-                      onClick={() => removeLink(index)}
-                      className="rounded-none border-2 border-border bg-white text-red-600 hover:bg-red-100"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -272,7 +479,7 @@ const CardEditorPage = () => {
             </div>
 
             <div
-              className="relative mx-auto flex min-h-[620px] max-w-sm flex-col items-center gap-4 overflow-hidden border-4 border-border bg-secondary-background p-6 text-center"
+              className="relative mx-auto flex min-h-[660px] max-w-sm flex-col overflow-hidden border-4 border-border bg-secondary-background text-left"
               style={
                 backgroundImageUrl.trim()
                   ? {
@@ -283,48 +490,93 @@ const CardEditorPage = () => {
                   : undefined
               }
             >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt=""
-                  className="h-28 w-28 rounded-full border-4 border-border object-cover shadow-shadow"
-                />
-              ) : (
-                <div
-                  className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-border font-heading text-4xl shadow-shadow"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  {displayName.trim().charAt(0).toUpperCase() || "D"}
-                </div>
-              )}
-              <div>
-                <h2 className="break-words text-3xl font-heading">
-                  {displayName || "Your Name"}
-                </h2>
-                <p className="mt-2 break-words text-sm">
-                  {bio || "Your short bio appears here."}
-                </p>
-              </div>
-
-              <div className="mt-2 flex w-full flex-col gap-3">
-                {previewLinks.length ? (
-                  previewLinks.map((link, index) => (
-                    <a
-                      key={`${link.label}-${index}`}
-                      href={link.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block w-full border-2 border-border px-4 py-3 font-heading shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
-                      style={{ backgroundColor: accentColor }}
-                    >
-                      {link.label}
-                    </a>
-                  ))
+              <div className="h-20 border-b-4 border-border bg-main" />
+              <div className="-mt-12 flex flex-col gap-4 p-5">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="h-28 w-28 rounded-full border-4 border-border bg-white object-cover shadow-shadow"
+                  />
                 ) : (
-                  <div className="border-2 border-dashed border-border p-4 text-sm">
-                    Add links to preview your card.
+                  <div
+                    className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-border font-heading text-4xl shadow-shadow"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    {displayName.trim().charAt(0).toUpperCase() || "D"}
                   </div>
                 )}
+
+                <div>
+                  <h2 className="break-words text-3xl font-heading">
+                    {displayName || "Your Name"}
+                  </h2>
+                  <p className="mt-2 break-words text-sm">
+                    {bio || "Your short bio appears here."}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {previewSocials.length ? (
+                    previewSocials.map((link) => (
+                      <a
+                        key={link.platform}
+                        href={link.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex h-11 w-11 items-center justify-center border-2 border-border bg-white shadow-shadow transition-transform hover:-translate-y-1"
+                        title={link.label}
+                      >
+                        <SocialBrandLogo
+                          platform={link.platform}
+                          label={link.label}
+                          className="h-6 w-6"
+                        />
+                      </a>
+                    ))
+                  ) : (
+                    <div className="border-2 border-dashed border-border p-3 text-sm">
+                      Add social links to preview logos.
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 font-heading">
+                    <Star size={18} fill="currentColor" />
+                    Featured work
+                  </div>
+                  {previewProjects.length ? (
+                    previewProjects.map((project, index) => (
+                      <a
+                        key={`${project.label}-${index}`}
+                        href={project.url || "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group border-2 border-border bg-white p-3 shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="min-w-0 break-words font-heading">
+                            {project.label || "Project name"}
+                          </span>
+                          <ArrowUpRight size={17} className="shrink-0" />
+                        </div>
+                        <p className="mt-2 break-words text-sm">
+                          {project.description || "Short project description."}
+                        </p>
+                      </a>
+                    ))
+                  ) : (
+                    <div className="border-2 border-dashed border-border p-3 text-sm">
+                      Add featured projects to show your best work.
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-auto flex items-center gap-2 border-2 border-border bg-main px-3 py-2 text-xs font-heading shadow-shadow">
+                  <BriefcaseBusiness size={15} />
+                  deadlink card
+                </div>
               </div>
             </div>
           </div>
