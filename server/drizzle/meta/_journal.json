@@ -36,6 +36,20 @@
       "when": 1777838383554,
       "tag": "0004_fearless_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777882253252,
+      "tag": "0005_true_justice",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777884218461,
+      "tag": "0006_perpetual_namorita",
+      "breakpoints": true
     }
   ]
 }

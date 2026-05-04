@@ -12,10 +12,10 @@ import {
 } from "@/components/socialPlatforms";
 import { usePublicCardStore } from "@/store/CardStore";
 
+const defaultBioColor = "#111111";
+const defaultCardBorderColor = "#000000";
 const pageOverlay =
   "linear-gradient(135deg, rgba(231,247,207,0.72), rgba(0,153,255,0.16), rgba(250,204,0,0.24))";
-const cardOverlay =
-  "linear-gradient(145deg, rgba(255,255,255,0.88), rgba(255,255,255,0.42))";
 
 const PublicCardPage = () => {
   const { slug } = useParams();
@@ -61,23 +61,25 @@ const PublicCardPage = () => {
           : { backgroundImage: pageOverlay }
       }
     >
-      <main className="mx-auto max-w-xl border-4 border-border bg-main p-3 shadow-shadow">
+      <main
+        className="mx-auto max-w-xl border-4 border-border bg-main p-3 shadow-shadow"
+        style={{ borderColor: card.cardBorderColor || defaultCardBorderColor }}
+      >
         <div
           className="overflow-hidden border-4 border-border bg-secondary-background text-left"
-          style={
-            card.backgroundImageUrl.trim()
+          style={{
+            borderColor: card.cardBorderColor || defaultCardBorderColor,
+            ...(card.backgroundImageUrl.trim()
               ? {
-                  backgroundImage: `${cardOverlay}, url("${card.backgroundImageUrl.trim()}")`,
+                  backgroundImage: `url("${card.backgroundImageUrl.trim()}")`,
                   backgroundPosition: "center",
                   backgroundSize: "cover",
                 }
-              : undefined
-          }
+              : {}),
+          }}
         >
-          <div className="h-24 border-b-4 border-border bg-main" />
-
-          <div className="-mt-14 flex flex-col gap-5 p-5 sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col items-center gap-5 p-5 text-center sm:p-6">
+            <div className="flex flex-col items-center gap-4">
               {card.avatarUrl ? (
                 <img
                   src={card.avatarUrl}
@@ -103,12 +105,20 @@ const PublicCardPage = () => {
                 {card.displayName}
               </h1>
               {card.bio && (
-                <p className="mt-3 max-w-prose break-words text-base">{card.bio}</p>
+                <p
+                  className="mt-3 max-w-prose break-words text-xl leading-9"
+                  style={{
+                    color: card.bioColor || defaultBioColor,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {card.bio.toUpperCase()}
+                </p>
               )}
             </div>
 
             {socials.length ? (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 {socials.map((link, index) => (
                   <a
                     key={`${link.label}-${index}`}
@@ -142,8 +152,8 @@ const PublicCardPage = () => {
             )}
 
             {projects.length ? (
-              <section className="flex flex-col gap-3">
-                <div className="flex items-center gap-2 font-heading">
+              <section className="flex w-full flex-col gap-3 text-left">
+                <div className="flex items-center justify-center gap-2 font-heading">
                   <Star size={18} fill="currentColor" />
                   Featured work
                 </div>

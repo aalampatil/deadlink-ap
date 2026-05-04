@@ -23,6 +23,8 @@ export type SocialCard = {
   slug: string;
   displayName: string;
   bio: string;
+  bioColor?: string;
+  cardBorderColor?: string;
   avatarUrl: string;
   backgroundImageUrl: string;
   accentColor: string;
@@ -30,6 +32,23 @@ export type SocialCard = {
   publicUrl: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type SocialCardResponse = SocialCard & {
+  bio_color?: string;
+  card_border_color?: string;
+};
+
+const normalizeCard = (card: SocialCardResponse | null): SocialCard | null => {
+  if (!card) return null;
+
+  return {
+    ...card,
+    bio: card.bio.toUpperCase(),
+    bioColor: card.bioColor ?? card.bio_color ?? "#111111",
+    cardBorderColor:
+      card.cardBorderColor ?? card.card_border_color ?? "#000000",
+  };
 };
 
 const getErrorMessage = (err: unknown, fallback: string) =>
@@ -54,8 +73,9 @@ export const useCardEditorStore = create<CardEditorStore>((set) => ({
     try {
       set({ loading: true });
       const res = await axiosApi.get("/card/me");
-      set({ card: res.data.data });
-      return res.data.data;
+      const card = normalizeCard(res.data.data);
+      set({ card });
+      return card;
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to fetch card"));
       return null;
@@ -68,7 +88,7 @@ export const useCardEditorStore = create<CardEditorStore>((set) => ({
     try {
       set({ saving: true });
       const res = await axiosApi.put("/card/me", payload);
-      set({ card: res.data.data });
+      set({ card: normalizeCard(res.data.data) });
       return true;
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to save card"));
@@ -93,7 +113,7 @@ export const usePublicCardStore = create<PublicCardStore>((set) => ({
     try {
       set({ loading: true, card: null });
       const res = await axiosApi.get(`/card/public/${slug}`);
-      set({ card: res.data.data });
+      set({ card: normalizeCard(res.data.data) });
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to fetch card"));
     } finally {

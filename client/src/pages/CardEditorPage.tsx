@@ -74,9 +74,21 @@ const emptyProject = (): SocialCardLink => ({
   platform: "custom",
 });
 
+const defaultBioColor = "#111111";
+const defaultCardBorderColor = "#000000";
 const accentPresets = ["#facc00", "#00d696", "#7a83ff", "#ff4d50", "#0099ff"];
-const backgroundOverlay =
-  "linear-gradient(145deg, rgba(255,255,255,0.84), rgba(255,255,255,0.38))";
+const bioColorPresets = [defaultBioColor, "#ffffff", "#facc00", "#00d696", "#0099ff"];
+const cardBorderColorPresets = [
+  defaultCardBorderColor,
+  "#ffffff",
+  "#facc00",
+  "#00d696",
+  "#0099ff",
+];
+const maxProjectCount = 5;
+
+const isLocalOrigin = (origin: string) =>
+  /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(origin);
 
 const CardEditorPage = () => {
   const { card, loading, saving, fetchMyCard, saveCard } = useCardEditorStore();
@@ -84,6 +96,8 @@ const CardEditorPage = () => {
   const [displayName, setDisplayName] = useState("");
   const [slug, setSlug] = useState("");
   const [bio, setBio] = useState("");
+  const [bioColor, setBioColor] = useState(defaultBioColor);
+  const [cardBorderColor, setCardBorderColor] = useState(defaultCardBorderColor);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
   const [accentColor, setAccentColor] = useState("#facc00");
@@ -113,7 +127,9 @@ const CardEditorPage = () => {
 
       setDisplayName(nextCard.displayName);
       setSlug(nextCard.slug);
-      setBio(nextCard.bio);
+      setBio(nextCard.bio.toUpperCase());
+      setBioColor(nextCard.bioColor || defaultBioColor);
+      setCardBorderColor(nextCard.cardBorderColor || defaultCardBorderColor);
       setAvatarUrl(nextCard.avatarUrl);
       setBackgroundImageUrl(nextCard.backgroundImageUrl);
       setAccentColor(nextCard.accentColor);
@@ -133,7 +149,11 @@ const CardEditorPage = () => {
           };
         }),
       );
-      setProjects(savedProjects.length ? savedProjects.slice(0, 3) : [emptyProject()]);
+      setProjects(
+        savedProjects.length
+          ? savedProjects.slice(0, maxProjectCount)
+          : [emptyProject()],
+      );
     };
 
     void loadCard();
@@ -177,7 +197,9 @@ const CardEditorPage = () => {
 
   const addProject = () => {
     setProjects((current) =>
-      current.length >= 3 ? current : [...current, emptyProject()],
+      current.length >= maxProjectCount
+        ? current
+        : [...current, emptyProject()],
     );
   };
 
@@ -211,7 +233,9 @@ const CardEditorPage = () => {
     const saved = await saveCard({
       displayName,
       slug,
-      bio,
+      bio: bio.toUpperCase(),
+      bioColor,
+      cardBorderColor,
       avatarUrl,
       backgroundImageUrl,
       accentColor,
@@ -222,14 +246,26 @@ const CardEditorPage = () => {
   };
 
   const copyPublicUrl = async () => {
-    if (!card?.publicUrl) return;
-    await navigator.clipboard.writeText(card.publicUrl);
+    const publicUrl = getPublicCardUrl();
+    if (!publicUrl) return;
+    await navigator.clipboard.writeText(publicUrl);
     toast.success("Copied card URL");
   };
 
   const openPublicCard = () => {
-    if (!card?.publicUrl) return;
-    window.open(card.publicUrl, "_blank", "noopener,noreferrer");
+    const publicUrl = getPublicCardUrl();
+    if (!publicUrl) return;
+    window.open(publicUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const getPublicCardUrl = () => {
+    if (!card?.slug) return card?.publicUrl ?? "";
+
+    if (isLocalOrigin(window.location.origin)) {
+      return `${window.location.origin}/c/${card.slug}`;
+    }
+
+    return card.publicUrl;
   };
 
   return (
@@ -301,9 +337,9 @@ const CardEditorPage = () => {
                 Bio
                 <textarea
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+                  onChange={(e) => setBio(e.target.value.toUpperCase())}
                   maxLength={280}
-                  placeholder="Developer, builder, student. I ship useful web tools."
+                  placeholder="DEVELOPER, BUILDER, STUDENT. I SHIP USEFUL WEB TOOLS."
                   className="min-h-24 resize-none border-2 border-border bg-white p-3 font-sans text-sm outline-none shadow-shadow"
                 />
               </label>
@@ -330,30 +366,86 @@ const CardEditorPage = () => {
                 </label>
               </div>
 
-              <div className="flex flex-col gap-3 border-2 border-border bg-main p-4 shadow-shadow">
-                <div className="flex items-center gap-2 font-heading">
-                  <Palette size={18} />
-                  Accent color
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {accentPresets.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      aria-label={`Use ${color}`}
-                      onClick={() => setAccentColor(color)}
-                      className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
-                        accentColor === color ? "-translate-x-1 -translate-y-1" : ""
-                      }`}
-                      style={{ backgroundColor: color }}
+              <div className="grid gap-4 border-2 border-border bg-main p-4 shadow-shadow xl:grid-cols-3">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 font-heading">
+                    <Palette size={18} />
+                    Accent color
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {accentPresets.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Use ${color}`}
+                        onClick={() => setAccentColor(color)}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
+                          accentColor === color ? "-translate-x-1 -translate-y-1" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
                     />
-                  ))}
-                  <input
-                    type="color"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
-                  />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 font-heading">
+                    <Palette size={18} />
+                    Bio color
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {bioColorPresets.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Use ${color}`}
+                        onClick={() => setBioColor(color)}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
+                          bioColor === color ? "-translate-x-1 -translate-y-1" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={bioColor || defaultBioColor}
+                      onChange={(e) => setBioColor(e.target.value)}
+                      className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 font-heading">
+                    <Palette size={18} />
+                    Card border
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {cardBorderColorPresets.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        aria-label={`Use ${color}`}
+                        onClick={() => setCardBorderColor(color)}
+                        className={`h-10 w-10 border-2 border-border shadow-shadow transition-transform ${
+                          cardBorderColor === color ? "-translate-x-1 -translate-y-1" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={cardBorderColor || defaultCardBorderColor}
+                      onChange={(e) => setCardBorderColor(e.target.value)}
+                      className="h-10 w-20 border-2 border-border bg-white shadow-shadow"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -408,7 +500,7 @@ const CardEditorPage = () => {
                   <h2 className="text-xl font-heading">Featured Projects</h2>
                   <Button
                     onClick={addProject}
-                    disabled={projects.length >= 3}
+                    disabled={projects.length >= maxProjectCount}
                     className="rounded-none border-2 border-border bg-secondary-background shadow-shadow"
                   >
                     <Plus size={16} />
@@ -472,7 +564,10 @@ const CardEditorPage = () => {
         </section>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div className="border-4 border-border bg-main p-3 shadow-shadow">
+          <div
+            className="border-4 border-border bg-main p-3 shadow-shadow"
+            style={{ borderColor: cardBorderColor || defaultCardBorderColor }}
+          >
             <div className="mb-3 flex items-center justify-between border-2 border-border bg-secondary-background px-3 py-2 font-heading">
               <span>Live Preview</span>
               <span className="text-xs">/c/{slug || "your-slug"}</span>
@@ -480,18 +575,18 @@ const CardEditorPage = () => {
 
             <div
               className="relative mx-auto flex min-h-[660px] max-w-sm flex-col overflow-hidden border-4 border-border bg-secondary-background text-left"
-              style={
-                backgroundImageUrl.trim()
+              style={{
+                borderColor: cardBorderColor || defaultCardBorderColor,
+                ...(backgroundImageUrl.trim()
                   ? {
-                      backgroundImage: `${backgroundOverlay}, url("${backgroundImageUrl.trim()}")`,
+                      backgroundImage: `url("${backgroundImageUrl.trim()}")`,
                       backgroundPosition: "center",
                       backgroundSize: "cover",
                     }
-                  : undefined
-              }
+                  : {}),
+              }}
             >
-              <div className="h-20 border-b-4 border-border bg-main" />
-              <div className="-mt-12 flex flex-col gap-4 p-5">
+              <div className="flex flex-col items-center gap-4 p-5 text-center">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -511,12 +606,18 @@ const CardEditorPage = () => {
                   <h2 className="break-words text-3xl font-heading">
                     {displayName || "Your Name"}
                   </h2>
-                  <p className="mt-2 break-words text-sm">
-                    {bio || "Your short bio appears here."}
+                  <p
+                    className="mt-2 break-words text-lg leading-8"
+                    style={{
+                      color: bioColor || defaultBioColor,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {bio || "YOUR SHORT BIO APPEARS HERE."}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap justify-center gap-2">
                   {previewSocials.length ? (
                     previewSocials.map((link) => (
                       <a
@@ -541,8 +642,8 @@ const CardEditorPage = () => {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 font-heading">
+                <div className="flex w-full flex-col gap-3 text-left">
+                  <div className="flex items-center justify-center gap-2 font-heading">
                     <Star size={18} fill="currentColor" />
                     Featured work
                   </div>
