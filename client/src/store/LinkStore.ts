@@ -11,7 +11,7 @@ type AxiosErrorResponse = {
 };
 
 type LinkData = {
-  _id: string;
+  id: string;
   displayTitle: string;
   slug: string;
   ownerId: string;
@@ -19,7 +19,7 @@ type LinkData = {
   manageUrl: string;
   mappedOn: string | null;
   mappedUrl: string | null;
-  status: boolean | "pending" | "ready";
+  status: "pending" | "ready";
   contentType: string | null;
   createdAt: string;
   updatedAt: string;
@@ -31,7 +31,7 @@ type GenerateLinkStore = {
   data: LinkData | null;
   loading: boolean;
   setDisplayTitle: (title: string) => void;
-  createLink: () => Promise<void>;
+  createLink: () => Promise<boolean>;
 };
 
 export const useGenerateLinkStore = create<GenerateLinkStore>((set, get) => ({
@@ -42,19 +42,21 @@ export const useGenerateLinkStore = create<GenerateLinkStore>((set, get) => ({
   setDisplayTitle: (title) => set({ displayTitle: title }),
 
   createLink: async () => {
-    if (get().loading) return;
+    if (get().loading) return false;
     set({ loading: true });
     try {
       const res = await axiosApi.post("/link/create", {
         displayTitle: get().displayTitle,
       });
       set({ data: res.data });
+      return true;
     } catch (err: unknown) {
       const message =
         err instanceof Error && "response" in err
           ? (err as AxiosErrorResponse).response?.data?.message
           : "An error occurred while creating link";
       toast.error(message);
+      return false;
     } finally {
       set({ loading: false });
     }
@@ -110,9 +112,9 @@ type ManageLinkStore = {
 
   setTargetUrl: (url: string) => void;
   setContentType: (type: string) => void;
-  setFile: (file: File) => void;
+  setFile: (file: File | null) => void;
   fetchLink: (slug: string) => Promise<void>;
-  mapUrl: (slug: string) => Promise<void>;
+  mapUrl: (slug: string) => Promise<boolean>;
 };
 
 export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
@@ -140,7 +142,6 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
     try {
       set({ fetching: true });
       const res = await axiosApi.get(`/link/manage/${slug}`);
-      // console.log("manage link", res);
       set({
         data: res.data,
       });
@@ -160,14 +161,12 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
       set({ loading: true });
 
       const { targetUrl, file, contentType } = get();
-      console.log(targetUrl, file, contentType);
 
       if (!contentType) throw new Error("content type is missing");
       const formdata = new FormData();
       formdata.append("contentType", contentType);
       if (targetUrl) formdata.append("targetUrl", targetUrl);
       if (file) formdata.append("file", file);
-      console.log("yahn");
 
       const res = await axiosApi.post(`/link/${slug}/map`, formdata, {
         headers: {
@@ -175,21 +174,19 @@ export const useManageLinkStore = create<ManageLinkStore>((set, get) => ({
         },
       });
 
-      console.log(res);
-
-      // send file with the body
-
       set({
         data: res.data,
         targetUrl: "",
+        file: null,
       });
+      return true;
     } catch (err: unknown) {
-      console.log(err);
       const message =
         err instanceof Error && "response" in err
           ? (err as AxiosErrorResponse).response?.data?.message
           : "An error occurred while mapping";
       toast.error(message);
+      return false;
     } finally {
       set({ loading: false });
     }
@@ -211,10 +208,11 @@ export const usePublicLinkStore = create<PublicLinkStore>((set) => ({
   isLoading: true,
   fetchLink: async (slug) => {
     try {
+      set({ isLoading: true, data: null });
       const res = await axiosApi.get(`/link/public/${slug}`);
       const link = res.data.mappedUrl;
       if (link) {
-        window.location.href = link;
+        window.location.replace(link);
         return;
       }
       set({

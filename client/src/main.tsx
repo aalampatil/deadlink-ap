@@ -12,6 +12,8 @@ import ProtectedRoute from "./config/Protected";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import GetAllLinks from "./pages/GetAllLinks";
+import CardEditorPage from "./pages/CardEditorPage";
+import PublicCardPage from "./pages/PublicCardPage";
 
 const router = createBrowserRouter([
   {
@@ -33,11 +35,7 @@ const router = createBrowserRouter([
       },
       {
         path: "l/:slug",
-        element: (
-          <ProtectedRoute>
-            <PublicUrl />
-          </ProtectedRoute>
-        ),
+        element: <PublicUrl />,
       },
       {
         path: "manage/:slug",
@@ -45,9 +43,25 @@ const router = createBrowserRouter([
       },
       {
         path: "get-all",
-        element: <GetAllLinks />,
+        element: (
+          <ProtectedRoute>
+            <GetAllLinks />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "card",
+        element: (
+          <ProtectedRoute>
+            <CardEditorPage />
+          </ProtectedRoute>
+        ),
       },
     ],
+  },
+  {
+    path: "c/:slug",
+    element: <PublicCardPage />,
   },
   {
     path: "sign-in",

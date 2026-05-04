@@ -12,18 +12,22 @@ class ApiError extends Error {
   }
 
   static unauthorised(message: string = "unauthorised"): ApiError {
-    return new ApiError(400, message);
+    return new ApiError(401, message);
   }
   static forbidden(message: string = "unauthorised"): ApiError {
-    return new ApiError(400, message);
+    return new ApiError(403, message);
   }
 
   static notfound(message: string = "not found"): ApiError {
-    return new ApiError(412, message);
+    return new ApiError(404, message);
+  }
+
+  static gone(message: string = "resource expired"): ApiError {
+    return new ApiError(410, message);
   }
 
   static internalError(message: string = "server error"): ApiError {
-    return new ApiError(404, message);
+    return new ApiError(500, message);
   }
 }
 

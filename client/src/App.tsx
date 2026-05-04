@@ -37,9 +37,9 @@ function App() {
           backgroundImage: `
       linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px),
-      linear-gradient(#fdf7c4)
+      linear-gradient(#e7f7cf)
     `,
-          backgroundSize: "100px 100px, 100px 100px, 100% 100%",
+          backgroundSize: "75px 75px, 75px 75px, 100% 100%",
         }}
       >
         <Header />

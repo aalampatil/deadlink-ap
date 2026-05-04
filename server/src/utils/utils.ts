@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import ApiError from "./api-error.js";
 
 function hashKey(input: string): string {
   return crypto.createHash("sha256").update(input).digest("hex");
@@ -9,19 +10,21 @@ function generateMappingKey(): string {
 }
 
 function validateUrl(raw: string): string {
-  if (typeof raw !== "string") throw new Error("targetUrl must be a string");
+  if (typeof raw !== "string") {
+    throw ApiError.badRequest("targetUrl must be a string");
+  }
   const value = raw.trim();
-  if (!value) throw new Error("targetUrl is required");
+  if (!value) throw ApiError.badRequest("targetUrl is required");
 
   let url;
   try {
     url = new URL(value);
   } catch {
-    throw new Error("targetUrl must be a valid URL");
+    throw ApiError.badRequest("targetUrl must be a valid URL");
   }
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error("targetUrl must be http(s)");
+    throw ApiError.badRequest("targetUrl must be http(s)");
   }
 
   return url.toString();
