@@ -45,8 +45,12 @@ const PublicCardPage = () => {
     );
   }
 
-  const socials = card.links.filter((link) => link.type !== "project");
-  const projects = card.links.filter((link) => link.type === "project");
+  const projects = card.links.filter(
+    (link) =>
+      link.type === "project" ||
+      (link.platform === "custom" && Boolean(link.description?.trim())),
+  );
+  const socials = card.links.filter((link) => !projects.includes(link));
 
   return (
     <div
@@ -161,25 +165,32 @@ const PublicCardPage = () => {
 
                 <div className="grid gap-3">
                   {projects.map((project, index) => (
-                    <a
+                    <div
                       key={`${project.label}-${index}`}
-                      href={project.url}
-                      target="_blank"
-                      rel="noreferrer"
                       className="group border-2 border-border bg-white p-4 shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="min-w-0 break-words text-lg font-heading">
                           {project.label}
                         </span>
-                        <ArrowUpRight size={18} className="shrink-0" />
+                        {project.url ? (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label={`Open ${project.label}`}
+                            className="shrink-0"
+                          >
+                            <ArrowUpRight size={18} />
+                          </a>
+                        ) : null}
                       </div>
                       {project.description && (
                         <p className="mt-2 break-words text-sm">
                           {project.description}
                         </p>
                       )}
-                    </a>
+                    </div>
                   ))}
                 </div>
               </section>

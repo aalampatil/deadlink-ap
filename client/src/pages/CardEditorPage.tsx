@@ -225,9 +225,14 @@ const CardEditorPage = () => {
     }));
 
     const cleanedProjects = previewProjects
-      .filter((project) => project.label.trim() && project.url.trim())
+      .filter(
+        (project) =>
+          project.label.trim() ||
+          project.url.trim() ||
+          project.description?.trim(),
+      )
       .map((project) => ({
-        label: project.label.trim(),
+        label: project.label.trim() || "Featured work",
         url: project.url.trim(),
         description: project.description?.trim() ?? "",
         type: "project" as const,
@@ -652,23 +657,22 @@ const CardEditorPage = () => {
                   </div>
                   {previewProjects.length ? (
                     previewProjects.map((project, index) => (
-                      <a
+                      <div
                         key={`${project.label}-${index}`}
-                        href={project.url || "#"}
-                        target="_blank"
-                        rel="noreferrer"
                         className="group border-2 border-border bg-white p-3 shadow-shadow transition-transform hover:-translate-x-1 hover:-translate-y-1"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="min-w-0 break-words font-heading">
                             {project.label || "Project name"}
                           </span>
-                          <ArrowUpRight size={17} className="shrink-0" />
+                          {project.url ? (
+                            <ArrowUpRight size={17} className="shrink-0" />
+                          ) : null}
                         </div>
                         <p className="mt-2 break-words text-sm">
                           {project.description || "Short project description."}
                         </p>
-                      </a>
+                      </div>
                     ))
                   ) : (
                     <div className="border-2 border-dashed border-border p-3 text-sm">

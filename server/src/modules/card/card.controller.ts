@@ -16,20 +16,40 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
-const cardLinkSchema = z.object({
-  label: z.string().trim().min(1).max(40),
-  url: z
-    .string()
-    .trim()
-    .url()
-    .refine((value) => {
-      const protocol = new URL(value).protocol;
-      return protocol === "http:" || protocol === "https:";
-    }, "Only http(s) URLs are allowed"),
-  type: z.enum(["social", "project"]).optional().default("social"),
-  platform: z.string().trim().max(32).optional().default("custom"),
-  description: z.string().trim().max(140).optional().default(""),
-});
+const isHttpUrl = (value: string) => {
+  try {
+    const protocol = new URL(value).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const cardLinkSchema = z
+  .object({
+    label: z.string().trim().min(1).max(40),
+    url: z.string().trim().max(2048).optional().default(""),
+    type: z.enum(["social", "project"]).optional().default("social"),
+    platform: z.string().trim().max(32).optional().default("custom"),
+    description: z.string().trim().max(140).optional().default(""),
+  })
+  .superRefine((link, ctx) => {
+    if (link.url && !isHttpUrl(link.url)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["url"],
+        message: "Only http(s) URLs are allowed",
+      });
+    }
+
+    if (link.type !== "project" && !link.url) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["url"],
+        message: "Social links require a URL",
+      });
+    }
+  });
 
 const cardPayloadSchema = z.object({
   slug: z.string().trim().min(3).max(80).optional(),
