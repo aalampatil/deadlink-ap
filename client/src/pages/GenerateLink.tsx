@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "@clerk/react";
 import { useNavigate } from "react-router-dom";
 import { useGenerateLinkStore } from "@/store/LinkStore";
+import { linkManageUrl, linkPublicUrl } from "@/lib/localUrls";
 
 const GenerateLink = () => {
   const { displayTitle, data, loading, setDisplayTitle, createLink } = useGenerateLinkStore();
@@ -26,6 +27,10 @@ const GenerateLink = () => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard!");
   };
+
+  const publicUrl = data ? linkPublicUrl(data.slug, data.publicUrl) : "";
+  const manageUrl = data ? linkManageUrl(data.slug, data.manageUrl) : "";
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 gap-8">
 
@@ -68,10 +73,10 @@ const GenerateLink = () => {
               Use this URL for submission
             </p>
             <p className="break-all border-2 border-border p-2 bg-white">
-              {data.publicUrl}
+              {publicUrl}
             </p>
             <Button
-              onClick={() => copyToClipboard(data.publicUrl)}
+              onClick={() => copyToClipboard(publicUrl)}
               className="text-2xl w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading"
             >
               Copy
@@ -85,10 +90,10 @@ const GenerateLink = () => {
               Use this URL to manage your public link. Only accessible to you.
             </p>
             <p className="break-all border-2 border-border p-2 bg-white">
-              {data.manageUrl}
+              {manageUrl}
             </p>
             <Button
-              onClick={() => copyToClipboard(data.manageUrl)}
+              onClick={() => copyToClipboard(manageUrl)}
               className="text-2xl w-fit bg-secondary-background border-2 border-border shadow-shadow rounded-none font-heading"
             >
               Copy

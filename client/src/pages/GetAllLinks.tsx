@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useFetchLinksStore } from "../store/LinkStore"
 import axios from "axios"
 import axiosApi from "@/config/axiosApi"
+import { linkManageUrl, linkPublicUrl } from "@/lib/localUrls"
 
 function GetAllLinks() {
 
@@ -122,7 +123,7 @@ function GetAllLinks() {
 
                 {/* Slug */}
                 <button
-                  onClick={() => copyToClipboard(`${window.location.origin}/l/${link.slug}`)}
+                  onClick={() => copyToClipboard(linkPublicUrl(link.slug, link.publicUrl))}
                   className="flex items-center gap-1.5 bg-main border border-border px-2.5 py-1 text-xs font-bold w-fit hover:bg-yellow-300 hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors"
                 >
                   /{link.slug}
@@ -138,7 +139,7 @@ function GetAllLinks() {
                 <div className="flex flex-row flex-wrap gap-2 sm:gap-2">
                   <Button
                     onClick={() =>
-                      copyToClipboard(link.publicUrl || `${window.location.origin}/l/${link.slug}`)
+                      copyToClipboard(linkPublicUrl(link.slug, link.publicUrl))
                     }
                     disabled={!link.publicUrl && !link.slug}
                     className="flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors"
@@ -148,7 +149,7 @@ function GetAllLinks() {
 
                   <Button
                     onClick={() =>
-                      window.open(link.publicUrl || `${window.location.origin}/l/${link.slug}`, "_blank")
+                      window.open(linkPublicUrl(link.slug, link.publicUrl), "_blank")
                     }
                     disabled={!link.publicUrl && !link.slug}
                     className={`flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors ${!link.publicUrl && !link.slug ? "cursor-none" : "cursor-pointer"}`}
@@ -157,8 +158,8 @@ function GetAllLinks() {
                   </Button>
 
                   <Button
-                    onClick={() => link.manageUrl && window.open(link.manageUrl, "_blank")}
-                    disabled={!link.manageUrl}
+                    onClick={() => window.open(linkManageUrl(link.slug, link.manageUrl), "_blank")}
+                    disabled={!link.manageUrl && !link.slug}
                     className="flex-1 h-8 rounded-none border border-border bg-white text-xs font-bold font-mono hover:bg-background hover:shadow-shadow hover:-translate-x-1 hover:-translate-y-1 transition-colors"
                   >
                     Manage Url ↗
