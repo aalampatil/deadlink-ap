@@ -10,6 +10,7 @@ import {
   normalizeSocialPlatform,
   socialPlatformLabels,
 } from "@/components/socialPlatforms";
+import { getOptimizedImageUrl } from "@/lib/imageUrls";
 import { usePublicCardStore } from "@/store/CardStore";
 
 const defaultBioColor = "#111111";
@@ -51,14 +52,22 @@ const PublicCardPage = () => {
       (link.platform === "custom" && Boolean(link.description?.trim())),
   );
   const socials = card.links.filter((link) => !projects.includes(link));
+  const backgroundImageUrl = getOptimizedImageUrl(card.backgroundImageUrl, {
+    width: 1280,
+  });
+  const avatarUrl = getOptimizedImageUrl(card.avatarUrl, {
+    width: 256,
+    height: 256,
+    crop: "fill",
+  });
 
   return (
     <div
       className="min-h-screen px-4 py-10"
       style={
-        card.backgroundImageUrl.trim()
+        backgroundImageUrl
           ? {
-              backgroundImage: `${pageOverlay}, url("${card.backgroundImageUrl.trim()}")`,
+              backgroundImage: `${pageOverlay}, url("${backgroundImageUrl}")`,
               backgroundPosition: "center",
               backgroundSize: "cover",
             }
@@ -69,9 +78,9 @@ const PublicCardPage = () => {
         <div
           className="overflow-hidden border-4 border-border bg-secondary-background text-left"
           style={{
-            ...(card.backgroundImageUrl.trim()
+            ...(backgroundImageUrl
               ? {
-                  backgroundImage: `url("${card.backgroundImageUrl.trim()}")`,
+                  backgroundImage: `url("${backgroundImageUrl}")`,
                   backgroundPosition: "center",
                   backgroundSize: "cover",
                 }
@@ -80,11 +89,13 @@ const PublicCardPage = () => {
         >
           <div className="flex flex-col items-center gap-5 p-5 text-center sm:p-6">
             <div className="flex flex-col items-center gap-4">
-              {card.avatarUrl ? (
+              {avatarUrl ? (
                 <img
-                  src={card.avatarUrl}
+                  src={avatarUrl}
                   alt=""
                   className="h-32 w-32 rounded-full border-4 border-border bg-white object-cover shadow-shadow"
+                  decoding="async"
+                  fetchPriority="high"
                 />
               ) : (
                 <div

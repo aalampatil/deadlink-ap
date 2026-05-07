@@ -89,6 +89,10 @@ const publicLink = async (req: Request, res: Response) => {
   if (!link) throw ApiError.notfound();
   assertLinkIsActive(link.linkValidity);
 
+  res.set(
+    "Cache-Control",
+    "public, max-age=30, s-maxage=120, stale-while-revalidate=300",
+  );
   res.json({
     slug: link.slug,
     status: link.status, // ✅ from computed column

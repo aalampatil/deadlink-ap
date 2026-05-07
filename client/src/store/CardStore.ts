@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { toast } from "react-toastify";
-import { axiosApi } from "@/config/axiosApi";
+import { axiosApi, publicAxiosApi } from "@/config/axiosApi";
 
 type AxiosErrorResponse = {
   response?: {
@@ -112,7 +112,7 @@ export const usePublicCardStore = create<PublicCardStore>((set) => ({
   fetchPublicCard: async (slug) => {
     try {
       set({ loading: true, card: null });
-      const res = await axiosApi.get(`/card/public/${slug}`);
+      const res = await publicAxiosApi.get(`/card/public/${slug}`);
       set({ card: normalizeCard(res.data.data) });
     } catch (err) {
       toast.error(getErrorMessage(err, "Failed to fetch card"));

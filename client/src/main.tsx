@@ -1,82 +1,98 @@
-import { StrictMode } from "react";
+import { lazy, StrictMode, Suspense, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Homepage from "./pages/Homepage";
-import GenerateLink from "./pages/GenerateLink";
-import PublicUrl from "./pages/PublicUrl";
-import ManageUrlPage from "./pages/ManageUrlPage";
-import { ClerkProvider } from "@clerk/react";
-import ProtectedRoute from "./config/Protected";
-import SignInPage from "./pages/SignInPage";
-import SignUpPage from "./pages/SignUpPage";
-import GetAllLinks from "./pages/GetAllLinks";
-import CardEditorPage from "./pages/CardEditorPage";
-import PublicCardPage from "./pages/PublicCardPage";
+
+const App = lazy(() => import("./App"));
+const ClerkRoutes = lazy(() => import("./config/ClerkRoutes"));
+const ProtectedRoute = lazy(() => import("./config/Protected"));
+const Homepage = lazy(() => import("./pages/Homepage"));
+const GenerateLink = lazy(() => import("./pages/GenerateLink"));
+const PublicUrl = lazy(() => import("./pages/PublicUrl"));
+const ManageUrlPage = lazy(() => import("./pages/ManageUrlPage"));
+const SignInPage = lazy(() => import("./pages/SignInPage"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage"));
+const GetAllLinks = lazy(() => import("./pages/GetAllLinks"));
+const CardEditorPage = lazy(() => import("./pages/CardEditorPage"));
+const PublicCardPage = lazy(() => import("./pages/PublicCardPage"));
+
+const pageFallback = (
+  <div className="flex min-h-screen items-center justify-center">
+    <div className="border-4 border-border bg-secondary-background px-6 py-4 font-heading shadow-shadow">
+      Loading...
+    </div>
+  </div>
+);
+
+const withSuspense = (element: ReactNode) => (
+  <Suspense fallback={pageFallback}>{element}</Suspense>
+);
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <App />,
+    path: "c/:slug",
+    element: withSuspense(<PublicCardPage />),
+  },
+  {
+    element: withSuspense(<ClerkRoutes />),
     children: [
       {
-        path: "",
-        index: true,
-        element: <Homepage />,
+        path: "/",
+        element: withSuspense(<App />),
+        children: [
+          {
+            path: "",
+            index: true,
+            element: withSuspense(<Homepage />),
+          },
+          {
+            path: "create-link",
+            element: withSuspense(
+              <ProtectedRoute>
+                <GenerateLink />
+              </ProtectedRoute>,
+            ),
+          },
+          {
+            path: "l/:slug",
+            element: withSuspense(<PublicUrl />),
+          },
+          {
+            path: "manage/:slug",
+            element: withSuspense(<ManageUrlPage />),
+          },
+          {
+            path: "get-all",
+            element: withSuspense(
+              <ProtectedRoute>
+                <GetAllLinks />
+              </ProtectedRoute>,
+            ),
+          },
+          {
+            path: "card",
+            element: withSuspense(
+              <ProtectedRoute>
+                <CardEditorPage />
+              </ProtectedRoute>,
+            ),
+          },
+        ],
       },
       {
-        path: "create-link",
-        element: (
-          <ProtectedRoute>
-            <GenerateLink />
-          </ProtectedRoute>
-        ),
+        path: "sign-in",
+        element: withSuspense(<SignInPage />),
       },
       {
-        path: "l/:slug",
-        element: <PublicUrl />,
-      },
-      {
-        path: "manage/:slug",
-        element: <ManageUrlPage />,
-      },
-      {
-        path: "get-all",
-        element: (
-          <ProtectedRoute>
-            <GetAllLinks />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "card",
-        element: (
-          <ProtectedRoute>
-            <CardEditorPage />
-          </ProtectedRoute>
-        ),
+        path: "sign-up",
+        element: withSuspense(<SignUpPage />),
       },
     ],
-  },
-  {
-    path: "c/:slug",
-    element: <PublicCardPage />,
-  },
-  {
-    path: "sign-in",
-    element: <SignInPage />,
-  },
-  {
-    path: "sign-up",
-    element: <SignUpPage />,
   },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      <RouterProvider router={router} />
-    </ClerkProvider>
+    <RouterProvider router={router} />
   </StrictMode>,
 );

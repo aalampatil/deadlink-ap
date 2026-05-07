@@ -1,6 +1,8 @@
 import express from "express";
 import linkRouter from "./modules/link/link.routes.js";
 import cardRouter from "./modules/card/card.routes.js";
+import { publicLink } from "./modules/link/link.controller.js";
+import { getPublicCard } from "./modules/card/card.controller.js";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
@@ -31,10 +33,6 @@ function createApp() {
   );
   // app.options("*", cors());
 
-  app.use(express.json({ limit: "5mb" }));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(clerkMiddleware());
-
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
@@ -47,11 +45,18 @@ function createApp() {
   });
 
   // console.log(limiter);
+  app.use(express.json({ limit: "5mb" }));
+  app.use(express.urlencoded({ extended: true }));
   app.use(limiter);
 
   app.get("/", (_, res: Response) => {
     res.send("OK 200, check");
   });
+
+  app.get("/api/link/public/:slug", publicLink);
+  app.get("/api/card/public/:slug", getPublicCard);
+
+  app.use(clerkMiddleware());
   app.use("/api/link", linkRouter);
   app.use("/api/card", cardRouter);
   // app.use("/api/user", userRouter);

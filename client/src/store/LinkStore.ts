@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosApi } from "@/config/axiosApi";
+import { axiosApi, publicAxiosApi } from "@/config/axiosApi";
 import { toast } from "react-toastify";
 
 type AxiosErrorResponse = {
@@ -209,7 +209,7 @@ export const usePublicLinkStore = create<PublicLinkStore>((set) => ({
   fetchLink: async (slug) => {
     try {
       set({ isLoading: true, data: null });
-      const res = await axiosApi.get(`/link/public/${slug}`);
+      const res = await publicAxiosApi.get(`/link/public/${slug}`);
       const link = res.data.mappedUrl;
       if (link) {
         window.location.replace(link);

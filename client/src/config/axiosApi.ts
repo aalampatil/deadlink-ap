@@ -7,6 +7,10 @@ export const axiosApi = axios.create({
   withCredentials: true,
 });
 
+export const publicAxiosApi = axios.create({
+  baseURL: backendUrl,
+});
+
 export const attachTokenInterceptor = (
   getToken: () => Promise<string | null>,
 ) => {
