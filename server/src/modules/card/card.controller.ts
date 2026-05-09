@@ -5,7 +5,6 @@ import { z } from "zod";
 import { db } from "../../db/index.js";
 import { socialCardsTable, type SocialCardLink } from "../../db/schema.js";
 import { env } from "../../env.js";
-import { isProduction } from "../../index.js";
 import ApiError from "../../utils/api-error.js";
 
 const slugify = (value: string) =>
